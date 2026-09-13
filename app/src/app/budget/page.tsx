@@ -193,39 +193,39 @@ export default async function BudgetPage() {
       </div>
 
       {/* KPI CARDS */}
-      <section className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4">
-        <div className="rounded-2xl border border-slate-300 bg-white p-4 shadow-sm sm:p-5">
-          <p className="text-xs font-medium text-slate-500 sm:text-sm">
+      <section className="mt-7 grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4">
+        <div className="rounded-2xl border border-slate-300 bg-white p-5 shadow-sm sm:p-5">
+          <p className="text-sm font-medium text-slate-600 sm:text-sm">
             Total Budgeted
           </p>
-          <p className="mt-2 text-xl font-bold text-slate-900 sm:text-2xl">
+          <p className="mt-2 text-2xl font-bold text-slate-900 sm:text-2xl">
             {formatCurrency(totalBudget)}
           </p>
         </div>
 
-        <div className="rounded-2xl border border-slate-300 bg-white p-4 shadow-sm sm:p-5">
-          <p className="text-xs font-medium text-slate-500 sm:text-sm">
+        <div className="rounded-2xl border border-slate-300 bg-white p-5 shadow-sm sm:p-5">
+          <p className="text-sm font-medium text-slate-600 sm:text-sm">
             Total Quoted
           </p>
-          <p className="mt-2 text-xl font-bold text-slate-900 sm:text-2xl">
+          <p className="mt-2 text-2xl font-bold text-slate-900 sm:text-2xl">
             {formatCurrency(totalQuoted)}
           </p>
         </div>
 
-        <div className="rounded-2xl border border-slate-300 bg-white p-4 shadow-sm sm:p-5">
-          <p className="text-xs font-medium text-slate-500 sm:text-sm">
+        <div className="rounded-2xl border border-slate-300 bg-white p-5 shadow-sm sm:p-5">
+          <p className="text-sm font-medium text-slate-600 sm:text-sm">
             Total Paid
           </p>
-          <p className="mt-2 text-xl font-bold text-slate-900 sm:text-2xl">
+          <p className="mt-2 text-2xl font-bold text-slate-900 sm:text-2xl">
             {formatCurrency(totalPaid)}
           </p>
         </div>
 
-        <div className="rounded-2xl border border-slate-300 bg-white p-4 shadow-sm sm:p-5">
-          <p className="text-xs font-medium text-slate-500 sm:text-sm">
+        <div className="rounded-2xl border border-slate-300 bg-white p-5 shadow-sm sm:p-5">
+          <p className="text-sm font-medium text-slate-600 sm:text-sm">
             Balance Remaining
           </p>
-          <p className="mt-2 text-xl font-bold text-slate-900 sm:text-2xl">
+          <p className="mt-2 text-2xl font-bold text-slate-900 sm:text-2xl">
             {formatCurrency(totalBalance)}
           </p>
         </div>
@@ -238,7 +238,7 @@ export default async function BudgetPage() {
             <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">
               Budget by Event
             </h2>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-2 text-base text-slate-600">
               Add an event whenever your wedding plan requires one.
             </p>
           </div>
@@ -249,34 +249,34 @@ export default async function BudgetPage() {
         {/* MOBILE */}
         <div className="divide-y md:hidden">
           {eventSummary.map((event) => (
-            <div key={event.id} className="p-5">
-              <p className="font-semibold text-slate-900">{event.name}</p>
+            <div key={event.id} className="p-6">
+              <p className="text-xl font-bold text-slate-900">{event.name}</p>
 
-              <div className="mt-4 grid grid-cols-2 gap-4">
+              <div className="mt-5 grid grid-cols-2 gap-5">
                 <div>
-                  <p className="text-xs text-slate-500">Budgeted</p>
-                  <p className="mt-1 font-semibold">
+                  <p className="text-sm font-medium text-slate-600">Budgeted</p>
+                  <p className="mt-1 text-lg font-bold text-slate-900">
                     {formatCurrency(event.budget)}
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-xs text-slate-500">Quoted</p>
-                  <p className="mt-1 font-semibold">
+                  <p className="text-sm font-medium text-slate-600">Quoted</p>
+                  <p className="mt-1 text-lg font-bold text-slate-900">
                     {formatCurrency(event.quoted)}
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-xs text-slate-500">Paid</p>
-                  <p className="mt-1 font-semibold">
+                  <p className="text-sm font-medium text-slate-600">Paid</p>
+                  <p className="mt-1 text-lg font-bold text-slate-900">
                     {formatCurrency(event.paid)}
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-xs text-slate-500">Balance</p>
-                  <p className="mt-1 font-semibold">
+                  <p className="text-sm font-medium text-slate-600">Balance</p>
+                  <p className="mt-1 text-lg font-bold text-slate-900">
                     {formatCurrency(event.balance)}
                   </p>
                 </div>
@@ -374,7 +374,7 @@ export default async function BudgetPage() {
             <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">
               Budget by Category
             </h2>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-2 text-base text-slate-600">
               Keep categories broad and add your own when needed.
             </p>
           </div>
@@ -385,34 +385,34 @@ export default async function BudgetPage() {
         {/* MOBILE */}
         <div className="divide-y md:hidden">
           {categorySummary.map((category) => (
-            <div key={category.id} className="p-5">
-              <p className="font-semibold text-slate-900">{category.name}</p>
+            <div key={category.id} className="p-6">
+              <p className="text-xl font-bold text-slate-900">{category.name}</p>
 
-              <div className="mt-4 grid grid-cols-2 gap-4">
+              <div className="mt-5 grid grid-cols-2 gap-5">
                 <div>
-                  <p className="text-xs text-slate-500">Budgeted</p>
-                  <p className="mt-1 font-semibold">
+                  <p className="text-sm font-medium text-slate-600">Budgeted</p>
+                  <p className="mt-1 text-lg font-bold text-slate-900">
                     {formatCurrency(category.budget)}
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-xs text-slate-500">Quoted</p>
-                  <p className="mt-1 font-semibold">
+                  <p className="text-sm font-medium text-slate-600">Quoted</p>
+                  <p className="mt-1 text-lg font-bold text-slate-900">
                     {formatCurrency(category.quoted)}
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-xs text-slate-500">Paid</p>
-                  <p className="mt-1 font-semibold">
+                  <p className="text-sm font-medium text-slate-600">Paid</p>
+                  <p className="mt-1 text-lg font-bold text-slate-900">
                     {formatCurrency(category.paid)}
                   </p>
                 </div>
 
                 <div>
-                  <p className="text-xs text-slate-500">Balance</p>
-                  <p className="mt-1 font-semibold">
+                  <p className="text-sm font-medium text-slate-600">Balance</p>
+                  <p className="mt-1 text-lg font-bold text-slate-900">
                     {formatCurrency(category.balance)}
                   </p>
                 </div>
@@ -465,7 +465,7 @@ export default async function BudgetPage() {
           <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">
             Budget Items
           </h2>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-2 text-base text-slate-600">
             {items.length} {items.length === 1 ? "budget item" : "budget items"}{" "}
             entered.
           </p>
@@ -484,20 +484,20 @@ export default async function BudgetPage() {
                 Number(item.paid_amount || 0);
 
               return (
-                <div key={item.id} className="p-5">
+                <div key={item.id} className="p-6">
                   <div className="flex items-start justify-between gap-4">
                     <div className="min-w-0">
-                      <h3 className="break-words font-semibold text-slate-900">
+                      <h3 className="break-words text-lg font-bold leading-snug text-slate-900">
                         {item.description}
                       </h3>
 
-                      <p className="mt-1 text-sm text-slate-500">
+                      <p className="mt-2 text-base text-slate-600">
                         {eventMap.get(item.event_id) ?? "—"} ·{" "}
                         {categoryMap.get(item.category_id) ?? "—"}
                       </p>
 
                       {item.vendor_name && (
-                        <p className="mt-1 text-sm text-slate-500">
+                        <p className="mt-2 text-base text-slate-600">
                           Vendor: {item.vendor_name}
                         </p>
                       )}
@@ -510,31 +510,31 @@ export default async function BudgetPage() {
                     />
                   </div>
 
-                  <div className="mt-5 grid grid-cols-2 gap-4 rounded-xl bg-slate-50 p-4">
+                  <div className="mt-6 grid grid-cols-2 gap-5 rounded-xl border border-slate-200 bg-slate-50 p-5">
                     <div>
-                      <p className="text-xs text-slate-500">Budgeted</p>
-                      <p className="mt-1 font-semibold">
+                      <p className="text-sm font-medium text-slate-600">Budgeted</p>
+                      <p className="mt-1 text-lg font-bold text-slate-900">
                         {formatCurrency(Number(item.budget_amount || 0))}
                       </p>
                     </div>
 
                     <div>
-                      <p className="text-xs text-slate-500">Quoted</p>
-                      <p className="mt-1 font-semibold">
+                      <p className="text-sm font-medium text-slate-600">Quoted</p>
+                      <p className="mt-1 text-lg font-bold text-slate-900">
                         {formatCurrency(Number(item.quoted_amount || 0))}
                       </p>
                     </div>
 
                     <div>
-                      <p className="text-xs text-slate-500">Paid</p>
-                      <p className="mt-1 font-semibold">
+                      <p className="text-sm font-medium text-slate-600">Paid</p>
+                      <p className="mt-1 text-lg font-bold text-slate-900">
                         {formatCurrency(Number(item.paid_amount || 0))}
                       </p>
                     </div>
 
                     <div>
-                      <p className="text-xs text-slate-500">Balance</p>
-                      <p className="mt-1 font-semibold">
+                      <p className="text-sm font-medium text-slate-600">Balance</p>
+                      <p className="mt-1 text-lg font-bold text-slate-900">
                         {formatCurrency(balance)}
                       </p>
                     </div>
