@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { formatDate } from "@/lib/dateUtils";
 import AddFunctionModal from "./AddFunctionModal";
 
 type Family = {
@@ -222,7 +223,7 @@ export default async function FunctionsPage() {
                     <div className="mt-2 space-y-1 text-sm text-slate-600">
                       <div>
                         Date:{" "}
-                        {fn.function_date || "Not set"}
+                        {fn.function_date ? formatDate(fn.function_date) : "Not set"}
                       </div>
 
                       <div>

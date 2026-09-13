@@ -1,5 +1,7 @@
 "use client";
 
+import DateInput from "@/components/DateInput";
+
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
@@ -494,8 +496,7 @@ export default function SourceOfFunds() {
                   <label className="mb-1 block text-sm font-medium text-stone-700">
                     Expected Date
                   </label>
-                  <input
-                    type="date"
+                  <DateInput
                     value={form.expected_date}
                     onChange={(e) =>
                       setForm({

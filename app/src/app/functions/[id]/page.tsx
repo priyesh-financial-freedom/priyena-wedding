@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { formatDate } from "@/lib/dateUtils";
 import FunctionAttendanceActions from "./FunctionAttendanceActions";
 import FunctionActions from "./FunctionActions";
 
@@ -234,7 +235,7 @@ export default async function FunctionDetailPage({
               <div className="mt-4 space-y-1 text-sm text-slate-600">
                 <div>
                   Date:{" "}
-                  {functionData.function_date || "Not set"}
+                  {functionData.function_date ? formatDate(functionData.function_date) : "Not set"}
                 </div>
 
                 <div>

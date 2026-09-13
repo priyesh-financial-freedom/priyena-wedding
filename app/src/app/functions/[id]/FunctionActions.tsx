@@ -1,5 +1,7 @@
 "use client";
 
+import DateInput from "@/components/DateInput";
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -129,8 +131,7 @@ export default function FunctionActions({
               Date
             </label>
 
-            <input
-              type="date"
+            <DateInput
               value={functionDate}
               onChange={(e) => setFunctionDate(e.target.value)}
               className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2"
