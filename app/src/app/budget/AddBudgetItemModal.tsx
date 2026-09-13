@@ -172,18 +172,14 @@ export default function AddBudgetItemModal({
             budget_amount: budget,
             quoted_amount: quoted,
             paid_amount: paid,
-
-            // Keep legacy database fields temporarily.
-            // The UI no longer uses these fields.
-            committed_amount: 0,
-            forecast_amount: budget,
-
             vendor_name: vendorName.trim() || null,
             notes: notes.trim() || null,
           });
 
         if (insertError) {
-          throw insertError;
+          throw new Error(
+            insertError.message || "Unable to save budget item."
+          );
         }
       }
 
