@@ -8,14 +8,8 @@ import AddGuestModal from "./AddGuestModal";
 type Family = {
   id: string;
   family_name: string;
-  primary_contact_name: string | null;
-  mobile: string | null;
-  email: string | null;
-  city: string | null;
-  side: string | null;
   invited: boolean;
   rsvp_status: string;
-  vip_status: boolean;
   notes: string | null;
   guest_count: number;
   guest_owner_id: string;
@@ -25,13 +19,8 @@ type Family = {
 type IndividualGuest = {
   id: string;
   full_name: string;
-  mobile: string | null;
-  email: string | null;
-  city: string | null;
-  side: string | null;
   invited: boolean;
   rsvp_status: string;
-  vip_status: boolean;
   notes: string | null;
   guest_owner_id: string | null;
   wedding_id: string;
@@ -49,6 +38,8 @@ export default function GuestsPage() {
     []
   );
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
+  const [weddingId, setWeddingId] = useState<string | null>(null);
+  const [refreshGuests, setRefreshGuests] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showAddGuest, setShowAddGuest] = useState(false);
 
@@ -59,8 +50,15 @@ export default function GuestsPage() {
     async function loadData() {
       setLoading(true);
 
-      const [familiesResult, membersResult, individualsResult] =
+      const [weddingResult, familiesResult, membersResult, individualsResult] =
         await Promise.all([
+          supabase
+            .from("weddings")
+            .select("id")
+            .eq("name", "Priyena Wedding")
+            .limit(1)
+            .maybeSingle(),
+
           supabase
             .from("guest_families")
             .select("*")
@@ -78,6 +76,12 @@ export default function GuestsPage() {
             .is("guest_family_id", null)
             .order("created_at", { ascending: true }),
         ]);
+
+      if (weddingResult.error) {
+        console.error("Error loading wedding:", weddingResult.error);
+      }
+
+      setWeddingId(weddingResult.data?.id ?? null);
 
       if (familiesResult.error) {
         console.error("Error loading families:", familiesResult.error);
@@ -101,7 +105,7 @@ export default function GuestsPage() {
     }
 
     loadData();
-  }, []);
+  }, [refreshGuests]);
 
   const ownerMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -122,18 +126,12 @@ export default function GuestsPage() {
       const matchesSearch =
         !query ||
         family.family_name.toLowerCase().includes(query) ||
-        (family.primary_contact_name ?? "").toLowerCase().includes(query) ||
-        (family.city ?? "").toLowerCase().includes(query) ||
         ownerName.toLowerCase().includes(query);
 
       let matchesFilter = true;
 
       if (filter === "pending") {
         matchesFilter = family.rsvp_status === "pending";
-      }
-
-      if (filter === "vip") {
-        matchesFilter = family.vip_status === true;
       }
 
       if (filter === "priyesh") {
@@ -167,17 +165,12 @@ export default function GuestsPage() {
       const matchesSearch =
         !query ||
         guest.full_name.toLowerCase().includes(query) ||
-        (guest.city ?? "").toLowerCase().includes(query) ||
         ownerName.toLowerCase().includes(query);
 
       let matchesFilter = true;
 
       if (filter === "pending") {
         matchesFilter = guest.rsvp_status === "pending";
-      }
-
-      if (filter === "vip") {
-        matchesFilter = guest.vip_status === true;
       }
 
       if (filter === "priyesh") {
@@ -208,9 +201,6 @@ export default function GuestsPage() {
       ) + filteredIndividuals.length,
     [filteredFamilies, filteredIndividuals]
   );
-
-  const weddingId =
-    families.length > 0 ? families[0].wedding_id : null;
 
   return (
     <main className="min-h-screen bg-slate-50 p-6 md:p-8">
@@ -244,18 +234,19 @@ export default function GuestsPage() {
           </div>
 
           <div className="rounded-xl bg-white p-5 shadow-sm">
+            <p className="text-sm text-slate-500">Individual Invitations</p>
+            <p className="mt-1 text-2xl font-bold text-slate-900">
+              {individualGuests.length}
+            </p>
+          </div>
+
+          <div className="rounded-xl bg-white p-5 shadow-sm">
             <p className="text-sm text-slate-500">Persons</p>
             <p className="mt-1 text-2xl font-bold text-slate-900">
               {totalPersons}
             </p>
           </div>
 
-          <div className="rounded-xl bg-white p-5 shadow-sm">
-            <p className="text-sm text-slate-500">Showing</p>
-            <p className="mt-1 text-2xl font-bold text-slate-900">
-              {filteredFamilies.length + filteredIndividuals.length}
-            </p>
-          </div>
         </div>
 
         <div className="mb-6 rounded-xl bg-white p-4 shadow-sm">
@@ -264,7 +255,7 @@ export default function GuestsPage() {
               type="text"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search family, guest, head of family, city or owner..."
+              placeholder="Search family, guest or owner..."
               className="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
             />
           </div>
@@ -277,7 +268,6 @@ export default function GuestsPage() {
               ["priyena", "Priyena"],
               ["shobhit", "Shobhit"],
               ["pending", "Pending RSVP"],
-              ["vip", "VIP"],
             ].map(([value, label]) => (
               <button
                 key={value}
@@ -329,27 +319,9 @@ export default function GuestsPage() {
                               <h3 className="text-lg font-semibold text-slate-900">
                                 {family.family_name}
                               </h3>
-
-                              {family.vip_status && (
-                                <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700">
-                                  VIP
-                                </span>
-                              )}
                             </div>
 
-                            <p className="mt-1 text-sm text-slate-600">
-                              Head:{" "}
-                              <span className="font-medium">
-                                {family.primary_contact_name ||
-                                  "Not specified"}
-                              </span>
-                            </p>
-
                             <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-sm text-slate-500">
-                              <span>
-                                {family.city || "City not specified"}
-                              </span>
-
                               <span>
                                 <strong className="font-semibold text-slate-700">
                                   {family.guest_count}
@@ -434,18 +406,9 @@ export default function GuestsPage() {
                                 Individual
                               </span>
 
-                              {guest.vip_status && (
-                                <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700">
-                                  VIP
-                                </span>
-                              )}
                             </div>
 
                             <div className="mt-2 flex flex-wrap gap-x-5 gap-y-2 text-sm text-slate-500">
-                              <span>
-                                {guest.city || "City not specified"}
-                              </span>
-
                               <span>
                                 Owner:{" "}
                                 <strong className="font-medium text-slate-700">
@@ -506,6 +469,7 @@ export default function GuestsPage() {
           owners={familyMembers}
           weddingId={weddingId}
           onClose={() => setShowAddGuest(false)}
+          onSaved={() => setRefreshGuests((value) => value + 1)}
         />
       )}
     </main>

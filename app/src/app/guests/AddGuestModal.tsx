@@ -13,12 +13,14 @@ type Props = {
   owners: Owner[];
   weddingId: string | null;
   onClose: () => void;
+  onSaved: () => void;
 };
 
 export default function AddGuestModal({
   owners,
   weddingId,
   onClose,
+  onSaved,
 }: Props) {
   const router = useRouter();
 
@@ -29,15 +31,9 @@ export default function AddGuestModal({
   const [error, setError] = useState("");
 
   const [familyName, setFamilyName] = useState("");
-  const [headName, setHeadName] = useState("");
-  const [mobile, setMobile] = useState("");
-  const [email, setEmail] = useState("");
-  const [city, setCity] = useState("");
-  const [side, setSide] = useState("bride");
   const [guestCount, setGuestCount] = useState("1");
   const [ownerId, setOwnerId] = useState(owners[0]?.id ?? "");
   const [rsvpStatus, setRsvpStatus] = useState("pending");
-  const [vipStatus, setVipStatus] = useState(false);
   const [notes, setNotes] = useState("");
 
   const [individualName, setIndividualName] = useState("");
@@ -46,15 +42,9 @@ export default function AddGuestModal({
     setError("");
     setMode("choice");
     setFamilyName("");
-    setHeadName("");
-    setMobile("");
-    setEmail("");
-    setCity("");
-    setSide("bride");
     setGuestCount("1");
     setOwnerId(owners[0]?.id ?? "");
     setRsvpStatus("pending");
-    setVipStatus(false);
     setNotes("");
     setIndividualName("");
     onClose();
@@ -71,11 +61,6 @@ export default function AddGuestModal({
 
     if (!familyName.trim()) {
       setError("Family name is required.");
-      return;
-    }
-
-    if (!headName.trim()) {
-      setError("Head of family is required.");
       return;
     }
 
@@ -99,14 +84,8 @@ export default function AddGuestModal({
         wedding_id: weddingId,
         guest_owner_id: ownerId,
         family_name: familyName.trim(),
-        primary_contact_name: headName.trim(),
-        mobile: mobile.trim() || null,
-        email: email.trim() || null,
-        city: city.trim() || null,
-        side,
         invited: true,
         rsvp_status: rsvpStatus,
-        vip_status: vipStatus,
         notes: notes.trim() || null,
         guest_count: count,
       });
@@ -118,6 +97,7 @@ export default function AddGuestModal({
       return;
     }
 
+    onSaved();
     router.refresh();
     setSaving(false);
     resetAndClose();
@@ -151,13 +131,8 @@ export default function AddGuestModal({
         guest_family_id: null,
         guest_owner_id: ownerId,
         full_name: individualName.trim(),
-        mobile: mobile.trim() || null,
-        email: email.trim() || null,
-        city: city.trim() || null,
-        side,
         invited: true,
         rsvp_status: rsvpStatus,
-        vip_status: vipStatus,
         notes: notes.trim() || null,
         age_group: "adult",
         attendance_status: "pending",
@@ -170,6 +145,7 @@ export default function AddGuestModal({
       return;
     }
 
+    onSaved();
     router.refresh();
     setSaving(false);
     resetAndClose();
@@ -211,8 +187,8 @@ export default function AddGuestModal({
               {mode === "choice"
                 ? "Choose the type of guest you want to add."
                 : mode === "family"
-                  ? "Add a family invitation using one head and a person count."
-                  : "Add a guest who is not part of a family group."}
+                  ? "Add a family invitation using the family name and number of persons."
+                  : "Add one guest directly without creating a family group."}
             </p>
           </div>
 
@@ -239,8 +215,8 @@ export default function AddGuestModal({
                 Family
               </div>
               <p className="mt-2 text-sm leading-6 text-slate-500">
-                Add a family invitation with the head of family and total
-                number of persons.
+                Add a family invitation using the family name and total number
+                of persons.
               </p>
             </button>
 
@@ -282,17 +258,6 @@ export default function AddGuestModal({
                     onChange={(e) => setFamilyName(e.target.value)}
                     className={inputClass()}
                     placeholder="e.g. Sharma Family"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <FieldLabel>Head of Family *</FieldLabel>
-                  <input
-                    value={headName}
-                    onChange={(e) => setHeadName(e.target.value)}
-                    className={inputClass()}
-                    placeholder="e.g. Rajesh Sharma"
                     required
                   />
                 </div>
@@ -360,78 +325,17 @@ export default function AddGuestModal({
               </>
             )}
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <FieldLabel>Mobile</FieldLabel>
-                <input
-                  value={mobile}
-                  onChange={(e) => setMobile(e.target.value)}
-                  className={inputClass()}
-                  placeholder="Mobile number"
-                />
-              </div>
-
-              <div>
-                <FieldLabel>Email</FieldLabel>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className={inputClass()}
-                  placeholder="Email address"
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <FieldLabel>City</FieldLabel>
-                <input
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  className={inputClass()}
-                  placeholder="City"
-                />
-              </div>
-
-              <div>
-                <FieldLabel>Side</FieldLabel>
-                <select
-                  value={side}
-                  onChange={(e) => setSide(e.target.value)}
-                  className={inputClass()}
-                >
-                  <option value="bride">Bride</option>
-                  <option value="groom">Groom</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <FieldLabel>RSVP</FieldLabel>
-                <select
-                  value={rsvpStatus}
-                  onChange={(e) => setRsvpStatus(e.target.value)}
-                  className={inputClass()}
-                >
-                  <option value="pending">Pending</option>
-                  <option value="confirmed">Confirmed</option>
-                  <option value="declined">Declined</option>
-                </select>
-              </div>
-
-              <div className="flex items-end pb-2">
-                <label className="flex cursor-pointer items-center gap-3 text-sm font-medium text-slate-700">
-                  <input
-                    type="checkbox"
-                    checked={vipStatus}
-                    onChange={(e) => setVipStatus(e.target.checked)}
-                    className="h-4 w-4 rounded"
-                  />
-                  VIP Guest
-                </label>
-              </div>
+            <div>
+              <FieldLabel>RSVP</FieldLabel>
+              <select
+                value={rsvpStatus}
+                onChange={(e) => setRsvpStatus(e.target.value)}
+                className={inputClass()}
+              >
+                <option value="pending">Pending</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="declined">Declined</option>
+              </select>
             </div>
 
             <div>
