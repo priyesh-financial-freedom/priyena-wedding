@@ -55,19 +55,8 @@ export default async function GuestFamilyPage({ params }: PageProps) {
                   {family.family_name}
                 </h1>
 
-                {family.vip_status && (
-                  <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
-                    VIP
-                  </span>
-                )}
               </div>
 
-              <p className="mt-2 text-base text-slate-600">
-                Head of Family:{" "}
-                <span className="font-semibold text-slate-800">
-                  {family.primary_contact_name || "Not specified"}
-                </span>
-              </p>
             </div>
 
             <div
@@ -96,45 +85,10 @@ export default async function GuestFamilyPage({ params }: PageProps) {
 
           <div className="grid gap-6 sm:grid-cols-2">
             <div>
-              <p className="text-sm text-slate-500">Head of Family</p>
-              <p className="mt-1 font-medium text-slate-900">
-                {family.primary_contact_name || "Not specified"}
-              </p>
-            </div>
-
-            <div>
               <p className="text-sm text-slate-500">Number of Persons</p>
               <p className="mt-1 text-xl font-bold text-slate-900">
                 {family.guest_count}{" "}
                 {family.guest_count === 1 ? "person" : "persons"}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-sm text-slate-500">Mobile</p>
-              <p className="mt-1 font-medium text-slate-900">
-                {family.mobile || "Not provided"}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-sm text-slate-500">Email</p>
-              <p className="mt-1 break-all font-medium text-slate-900">
-                {family.email || "Not provided"}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-sm text-slate-500">City</p>
-              <p className="mt-1 font-medium text-slate-900">
-                {family.city || "Not specified"}
-              </p>
-            </div>
-
-            <div>
-              <p className="text-sm text-slate-500">Side</p>
-              <p className="mt-1 font-medium capitalize text-slate-900">
-                {family.side || "Not specified"}
               </p>
             </div>
 
@@ -146,9 +100,9 @@ export default async function GuestFamilyPage({ params }: PageProps) {
             </div>
 
             <div>
-              <p className="text-sm text-slate-500">Invitation</p>
-              <p className="mt-1 font-medium text-slate-900">
-                {family.invited ? "Invited" : "Not invited"}
+              <p className="text-sm text-slate-500">RSVP</p>
+              <p className="mt-1 font-medium capitalize text-slate-900">
+                {family.rsvp_status}
               </p>
             </div>
           </div>
@@ -172,15 +126,9 @@ export default async function GuestFamilyPage({ params }: PageProps) {
           family={{
             id: family.id,
             family_name: family.family_name,
-            primary_contact_name: family.primary_contact_name,
-            mobile: family.mobile,
-            email: family.email,
-            city: family.city,
-            side: family.side,
             guest_count: family.guest_count,
             guest_owner_id: family.guest_owner_id,
             rsvp_status: family.rsvp_status,
-            vip_status: family.vip_status,
             notes: family.notes,
           }}
           owners={ownersResult.data ?? []}

@@ -12,15 +12,9 @@ type Owner = {
 type Family = {
   id: string;
   family_name: string;
-  primary_contact_name: string | null;
-  mobile: string | null;
-  email: string | null;
-  city: string | null;
-  side: string | null;
   guest_count: number;
   guest_owner_id: string;
   rsvp_status: string;
-  vip_status: boolean;
   notes: string | null;
 };
 
@@ -37,19 +31,11 @@ export default function GuestFamilyActions({ family, owners }: Props) {
   const [error, setError] = useState("");
 
   const [familyName, setFamilyName] = useState(family.family_name);
-  const [headName, setHeadName] = useState(
-    family.primary_contact_name ?? ""
-  );
-  const [mobile, setMobile] = useState(family.mobile ?? "");
-  const [email, setEmail] = useState(family.email ?? "");
-  const [city, setCity] = useState(family.city ?? "");
-  const [side, setSide] = useState(family.side ?? "bride");
   const [guestCount, setGuestCount] = useState(
     String(family.guest_count ?? 1)
   );
   const [ownerId, setOwnerId] = useState(family.guest_owner_id);
   const [rsvpStatus, setRsvpStatus] = useState(family.rsvp_status);
-  const [vipStatus, setVipStatus] = useState(family.vip_status);
   const [notes, setNotes] = useState(family.notes ?? "");
 
   function inputClass() {
@@ -71,11 +57,6 @@ export default function GuestFamilyActions({ family, owners }: Props) {
       return;
     }
 
-    if (!headName.trim()) {
-      setError("Head of family is required.");
-      return;
-    }
-
     if (!Number.isInteger(count) || count < 1) {
       setError("Number of persons must be at least 1.");
       return;
@@ -92,15 +73,9 @@ export default function GuestFamilyActions({ family, owners }: Props) {
       .from("guest_families")
       .update({
         family_name: familyName.trim(),
-        primary_contact_name: headName.trim(),
-        mobile: mobile.trim() || null,
-        email: email.trim() || null,
-        city: city.trim() || null,
-        side,
         guest_count: count,
         guest_owner_id: ownerId,
         rsvp_status: rsvpStatus,
-        vip_status: vipStatus,
         notes: notes.trim() || null,
       })
       .eq("id", family.id);
@@ -189,16 +164,6 @@ export default function GuestFamilyActions({ family, owners }: Props) {
             />
           </div>
 
-          <div>
-            <label className={labelClass()}>Head of Family *</label>
-            <input
-              value={headName}
-              onChange={(e) => setHeadName(e.target.value)}
-              className={inputClass()}
-              required
-            />
-          </div>
-
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <label className={labelClass()}>
@@ -232,75 +197,17 @@ export default function GuestFamilyActions({ family, owners }: Props) {
             </div>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <label className={labelClass()}>Mobile</label>
-              <input
-                value={mobile}
-                onChange={(e) => setMobile(e.target.value)}
-                className={inputClass()}
-              />
-            </div>
-
-            <div>
-              <label className={labelClass()}>Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className={inputClass()}
-              />
-            </div>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <label className={labelClass()}>City</label>
-              <input
-                value={city}
-                onChange={(e) => setCity(e.target.value)}
-                className={inputClass()}
-              />
-            </div>
-
-            <div>
-              <label className={labelClass()}>Side</label>
-              <select
-                value={side}
-                onChange={(e) => setSide(e.target.value)}
-                className={inputClass()}
-              >
-                <option value="bride">Bride</option>
-                <option value="groom">Groom</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2">
-            <div>
-              <label className={labelClass()}>RSVP</label>
-              <select
-                value={rsvpStatus}
-                onChange={(e) => setRsvpStatus(e.target.value)}
-                className={inputClass()}
-              >
-                <option value="pending">Pending</option>
-                <option value="confirmed">Confirmed</option>
-                <option value="declined">Declined</option>
-              </select>
-            </div>
-
-            <div className="flex items-end pb-2">
-              <label className="flex cursor-pointer items-center gap-3 text-sm font-medium text-slate-700">
-                <input
-                  type="checkbox"
-                  checked={vipStatus}
-                  onChange={(e) => setVipStatus(e.target.checked)}
-                  className="h-4 w-4 rounded"
-                />
-                VIP Family
-              </label>
-            </div>
+          <div>
+            <label className={labelClass()}>RSVP</label>
+            <select
+              value={rsvpStatus}
+              onChange={(e) => setRsvpStatus(e.target.value)}
+              className={inputClass()}
+            >
+              <option value="pending">Pending</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="declined">Declined</option>
+            </select>
           </div>
 
           <div>

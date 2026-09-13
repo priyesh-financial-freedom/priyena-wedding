@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import AddGuestModal from "./AddGuestModal";
+import EditIndividualGuestModal from "./EditIndividualGuestModal";
 
 type Family = {
   id: string;
@@ -42,6 +43,11 @@ export default function GuestsPage() {
   const [refreshGuests, setRefreshGuests] = useState(0);
   const [loading, setLoading] = useState(true);
   const [showAddGuest, setShowAddGuest] = useState(false);
+  const [editingIndividual, setEditingIndividual] =
+    useState<IndividualGuest | null>(null);
+  const [openIndividualMenu, setOpenIndividualMenu] = useState<string | null>(
+    null
+  );
 
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
@@ -106,6 +112,31 @@ export default function GuestsPage() {
 
     loadData();
   }, [refreshGuests]);
+
+  async function deleteIndividualGuest(guest: IndividualGuest) {
+    const confirmed = window.confirm(
+      `Delete ${guest.full_name}?\n\nThis will permanently remove this individual guest.`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    const { error } = await supabase
+      .from("guests")
+      .delete()
+      .eq("id", guest.id)
+      .is("guest_family_id", null);
+
+    if (error) {
+      console.error("Error deleting individual guest:", error);
+      window.alert("Could not delete the guest. Please try again.");
+      return;
+    }
+
+    setOpenIndividualMenu(null);
+    setRefreshGuests((value) => value + 1);
+  }
 
   const ownerMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -420,21 +451,61 @@ export default function GuestsPage() {
                             </div>
                           </div>
 
-                          <span
-                            className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
-                              guest.rsvp_status === "confirmed"
-                                ? "bg-green-100 text-green-700"
+                          <div className="relative flex items-center gap-3">
+                            <span
+                              className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
+                                guest.rsvp_status === "confirmed"
+                                  ? "bg-green-100 text-green-700"
+                                  : guest.rsvp_status === "declined"
+                                    ? "bg-red-100 text-red-700"
+                                    : "bg-amber-100 text-amber-700"
+                              }`}
+                            >
+                              {guest.rsvp_status === "confirmed"
+                                ? "Confirmed"
                                 : guest.rsvp_status === "declined"
-                                  ? "bg-red-100 text-red-700"
-                                  : "bg-amber-100 text-amber-700"
-                            }`}
-                          >
-                            {guest.rsvp_status === "confirmed"
-                              ? "Confirmed"
-                              : guest.rsvp_status === "declined"
-                                ? "Declined"
-                                : "Pending"}
-                          </span>
+                                  ? "Declined"
+                                  : "Pending"}
+                            </span>
+
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setOpenIndividualMenu(
+                                  openIndividualMenu === guest.id
+                                    ? null
+                                    : guest.id
+                                )
+                              }
+                              className="flex h-9 w-9 items-center justify-center rounded-lg text-lg font-bold text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+                              aria-label={`Actions for ${guest.full_name}`}
+                            >
+                              ⋮
+                            </button>
+
+                            {openIndividualMenu === guest.id && (
+                              <div className="absolute right-0 top-11 z-20 w-36 rounded-lg border border-slate-200 bg-white py-1 shadow-lg">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setEditingIndividual(guest);
+                                    setOpenIndividualMenu(null);
+                                  }}
+                                  className="block w-full px-4 py-2 text-left text-sm font-medium text-slate-700 hover:bg-slate-50"
+                                >
+                                  Edit Guest
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => deleteIndividualGuest(guest)}
+                                  className="block w-full px-4 py-2 text-left text-sm font-medium text-red-600 hover:bg-red-50"
+                                >
+                                  Delete Guest
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         </div>
 
                         {guest.notes && (
@@ -469,6 +540,15 @@ export default function GuestsPage() {
           owners={familyMembers}
           weddingId={weddingId}
           onClose={() => setShowAddGuest(false)}
+          onSaved={() => setRefreshGuests((value) => value + 1)}
+        />
+      )}
+
+      {editingIndividual && (
+        <EditIndividualGuestModal
+          guest={editingIndividual}
+          owners={familyMembers}
+          onClose={() => setEditingIndividual(null)}
           onSaved={() => setRefreshGuests((value) => value + 1)}
         />
       )}
