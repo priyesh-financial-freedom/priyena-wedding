@@ -55,6 +55,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               >
                 Functions
               </Link>
+
+              <Link
+                href="/budget"
+                className="rounded-lg px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+              >
+                Budget
+              </Link>
             </nav>
           </div>
         </header>
