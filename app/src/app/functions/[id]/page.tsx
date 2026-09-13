@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import FunctionAttendanceActions from "./FunctionAttendanceActions";
+import FunctionActions from "./FunctionActions";
 
 type PageProps = {
   params: Promise<{ id: string }>;
@@ -252,6 +253,8 @@ export default async function FunctionDetailPage({
                     : "Not set"}
                 </div>
               </div>
+
+              <FunctionActions functionData={functionData} />
             </div>
 
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">

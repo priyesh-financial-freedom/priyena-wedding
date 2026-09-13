@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import AddFunctionModal from "./AddFunctionModal";
 
 type Family = {
   id: string;
@@ -184,13 +185,19 @@ export default async function FunctionsPage() {
           </Link>
         </div>
 
-        <h1 className="text-4xl font-bold">
-          Wedding Functions
-        </h1>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-4xl font-bold">
+              Wedding Functions
+            </h1>
 
-        <p className="mt-2 text-slate-600">
-          Priyena Wedding Planner
-        </p>
+            <p className="mt-2 text-slate-600">
+              Priyena Wedding Planner
+            </p>
+          </div>
+
+          <AddFunctionModal />
+        </div>
 
         <div className="mt-8 grid gap-4 md:grid-cols-2">
           {functionList.map((fn) => {
