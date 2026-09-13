@@ -2,6 +2,7 @@ import { supabase } from "@/lib/supabase";
 import AddBudgetItemModal from "./AddBudgetItemModal";
 import AddBudgetMasterModal from "./AddBudgetMasterModal";
 import BudgetItemActions from "./BudgetItemActions";
+import SourceOfFunds from "./SourceOfFunds";
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("en-IN", {
@@ -455,7 +456,9 @@ export default async function BudgetPage() {
       </section>
 
       {/* BUDGET ITEMS */}
-      <section className="mt-6 overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-sm">
+      <SourceOfFunds />
+
+<section className="mt-6 overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-sm">
         <div className="border-b px-5 py-5 sm:px-6">
           <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">
             Budget Items
