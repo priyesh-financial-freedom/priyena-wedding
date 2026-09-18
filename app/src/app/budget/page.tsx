@@ -47,6 +47,7 @@ export default async function BudgetPage() {
     { data: budgetItems },
     { data: events },
     { data: categories },
+    { data: payments },
   ] = await Promise.all([
     supabase
       .from("budget_items")
@@ -69,6 +70,11 @@ export default async function BudgetPage() {
       .eq("wedding_id", wedding.id)
       .eq("active", true)
       .order("display_order", { ascending: true }),
+    supabase
+      .from("budget_payments")
+      .select("budget_item_id, category_id, payment_amount")
+      .order("created_at", { ascending: true }),
+
   ]);
 
   const items = (budgetItems ?? []) as BudgetItem[];
@@ -87,6 +93,41 @@ export default async function BudgetPage() {
     (events ?? []).map((event) => [event.id, event.name])
   );
 
+  const paymentData = payments ?? [];
+
+  const paidByItem = new Map<string, number>();
+  const paidByCategory = new Map<string, number>();
+
+  paymentData.forEach((payment) => {
+    const amount = Number(payment.payment_amount || 0);
+
+    if (payment.budget_item_id) {
+      paidByItem.set(
+        payment.budget_item_id,
+        (paidByItem.get(payment.budget_item_id) ?? 0) + amount
+      );
+
+      const item = items.find((item) => item.id === payment.budget_item_id);
+
+      if (item) {
+        paidByCategory.set(
+          item.category_id,
+          (paidByCategory.get(item.category_id) ?? 0) + amount
+        );
+      }
+    } else if (payment.category_id) {
+      paidByCategory.set(
+        payment.category_id,
+        (paidByCategory.get(payment.category_id) ?? 0) + amount
+      );
+    }
+  });
+
+  const totalPaidFromExpenses = paymentData.reduce((sum, payment) => {
+    if (!payment.budget_item_id && !payment.category_id) return sum;
+    return sum + Number(payment.payment_amount || 0);
+  }, 0);
+
   const categoryMap = new Map(
     (categories ?? []).map((category) => [category.id, category.name])
   );
@@ -101,10 +142,7 @@ export default async function BudgetPage() {
     0
   );
 
-  const totalPaid = items.reduce(
-    (sum, item) => sum + Number(item.paid_amount || 0),
-    0
-  );
+  const totalPaid = totalPaidFromExpenses;
 
   const totalBalance = totalBudget - totalPaid;
 
@@ -122,7 +160,7 @@ export default async function BudgetPage() {
     );
 
     const paid = matching.reduce(
-      (sum, item) => sum + Number(item.paid_amount || 0),
+      (sum, item) => sum + (paidByItem.get(item.id) ?? 0),
       0
     );
 
@@ -155,10 +193,7 @@ export default async function BudgetPage() {
       0
     );
 
-    const paid = matching.reduce(
-      (sum, item) => sum + Number(item.paid_amount || 0),
-      0
-    );
+    const paid = paidByCategory.get(category.id) ?? 0;
 
     return {
       ...category,
@@ -481,7 +516,7 @@ export default async function BudgetPage() {
             items.map((item) => {
               const balance =
                 Number(item.budget_amount || 0) -
-                Number(item.paid_amount || 0);
+                (paidByItem.get(item.id) ?? 0);
 
               return (
                 <div key={item.id} className="p-6">
@@ -528,7 +563,7 @@ export default async function BudgetPage() {
                     <div>
                       <p className="text-sm font-medium text-slate-600">Paid</p>
                       <p className="mt-1 text-lg font-bold text-slate-900">
-                        {formatCurrency(Number(item.paid_amount || 0))}
+                        {formatCurrency((paidByItem.get(item.id) ?? 0))}
                       </p>
                     </div>
 
@@ -565,7 +600,7 @@ export default async function BudgetPage() {
               {items.map((item) => {
                 const balance =
                   Number(item.budget_amount || 0) -
-                  Number(item.paid_amount || 0);
+                  (paidByItem.get(item.id) ?? 0);
 
                 return (
                   <tr key={item.id}>
@@ -595,7 +630,7 @@ export default async function BudgetPage() {
                     </td>
 
                     <td className="px-6 py-4 text-right">
-                      {formatCurrency(Number(item.paid_amount || 0))}
+                      {formatCurrency((paidByItem.get(item.id) ?? 0))}
                     </td>
 
                     <td className="px-6 py-4 text-right font-medium">

@@ -74,6 +74,13 @@ export default function RootLayout({
               </Link>
 
               <Link
+                href="/expenses"
+                className="rounded-lg px-2.5 py-2 text-xs font-medium text-slate-700 hover:bg-[#fff3ed] sm:px-4 sm:text-sm"
+              >
+                Expenses
+              </Link>
+
+              <Link
                 href="/budget"
                 className="rounded-lg px-2.5 py-2 text-xs font-medium text-slate-700 hover:bg-[#fff3ed] sm:px-4 sm:text-sm"
               >
