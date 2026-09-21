@@ -28,7 +28,7 @@ function daysUntil(dateString: string) {
   eventDate.setHours(0, 0, 0, 0);
 
   return Math.ceil(
-    (eventDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+    (eventDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
   );
 }
 
@@ -59,6 +59,7 @@ export default async function HomePage() {
     { data: families },
     { data: directGuests },
     { data: budgetItems },
+    { data: payments },
   ] = await Promise.all([
     supabase
       .from("functions")
@@ -82,76 +83,71 @@ export default async function HomePage() {
       .from("budget_items")
       .select("budget_amount, quoted_amount, paid_amount")
       .eq("wedding_id", wedding.id),
+
+    supabase
+      .from("budget_payments")
+      .select("payment_amount, budget_item_id, category_id")
+      .order("created_at", { ascending: true }),
   ]);
 
   const eventList = functions ?? [];
   const familyList = families ?? [];
   const individualList = directGuests ?? [];
   const budgetList = budgetItems ?? [];
+  const paymentList = payments ?? [];
 
   const familiesInvited = familyList.filter(
-    (family) => family.invited === true
+    (family) => family.invited === true,
   ).length;
 
   const confirmedFamilyPersons = familyList
     .filter((family) => family.rsvp_status === "confirmed")
-    .reduce(
-      (sum, family) => sum + Number(family.guest_count || 0),
-      0
-    );
+    .reduce((sum, family) => sum + Number(family.guest_count || 0), 0);
 
   const confirmedIndividuals = individualList.filter(
-    (guest) => guest.rsvp_status === "confirmed"
+    (guest) => guest.rsvp_status === "confirmed",
   ).length;
 
-  const confirmedGuests =
-    confirmedFamilyPersons + confirmedIndividuals;
+  const confirmedGuests = confirmedFamilyPersons + confirmedIndividuals;
 
   const pendingFamilyPersons = familyList
     .filter(
-      (family) =>
-        family.invited === true &&
-        family.rsvp_status !== "confirmed"
+      (family) => family.invited === true && family.rsvp_status !== "confirmed",
     )
-    .reduce(
-      (sum, family) => sum + Number(family.guest_count || 0),
-      0
-    );
+    .reduce((sum, family) => sum + Number(family.guest_count || 0), 0);
 
   const pendingIndividuals = individualList.filter(
-    (guest) =>
-      guest.invited === true &&
-      guest.rsvp_status !== "confirmed"
+    (guest) => guest.invited === true && guest.rsvp_status !== "confirmed",
   ).length;
 
   const pendingRsvp = pendingFamilyPersons + pendingIndividuals;
 
   const totalBudget = budgetList.reduce(
     (sum, item) => sum + Number(item.budget_amount || 0),
-    0
+    0,
   );
 
   const totalQuoted = budgetList.reduce(
     (sum, item) => sum + Number(item.quoted_amount || 0),
-    0
+    0,
   );
 
-  const totalPaid = budgetList.reduce(
-    (sum, item) => sum + Number(item.paid_amount || 0),
-    0
-  );
+  const totalPaid = paymentList.reduce((sum, payment) => {
+    if (!payment.budget_item_id && !payment.category_id) {
+      return sum;
+    }
+
+    return sum + Number(payment.payment_amount || 0);
+  }, 0);
 
   const balanceRemaining = totalBudget - totalPaid;
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#fffaf5] text-slate-900">
-
       {/* HERO */}
       <section className="border-b border-[#ead8c5] bg-gradient-to-br from-[#fff8f0] via-[#fffaf6] to-[#f8eee7]">
         <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
-
           <div className="flex flex-col items-center text-center">
-
             {/* GANESHA */}
             <div className="relative h-28 w-28 sm:h-32 sm:w-32">
               <Image
@@ -183,8 +179,8 @@ export default async function HomePage() {
             </div>
 
             <p className="mt-4 max-w-xl font-serif text-base italic leading-relaxed text-slate-600 sm:text-lg">
-              May Lord Ganesha remove all obstacles and bless
-              this beautiful new journey together.
+              May Lord Ganesha remove all obstacles and bless this beautiful new
+              journey together.
             </p>
 
             {/* COUPLE PHOTO — BELOW GANESHA AND WEDDING TITLE */}
@@ -198,14 +194,12 @@ export default async function HomePage() {
                 sizes="(max-width: 640px) 90vw, 400px"
               />
             </div>
-
           </div>
         </div>
       </section>
 
       {/* MAIN CONTENT */}
       <div className="mx-auto max-w-6xl px-4 py-7 sm:px-6 sm:py-10 lg:px-8">
-
         {/* KEY DATES */}
         <section className="rounded-2xl border border-[#eadfd5] bg-white/90 p-5 shadow-sm sm:p-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -394,7 +388,6 @@ export default async function HomePage() {
 
           <div className="mt-4 text-[#c39358]">✦</div>
         </section>
-
       </div>
     </main>
   );
