@@ -182,6 +182,8 @@ export default async function BudgetPage() {
     .map((category) => {
       const matching = items.filter((item) => item.category_id === category.id);
 
+      const itemCount = matching.length;
+
       const budget = matching.reduce(
         (sum, item) => sum + Number(item.budget_amount || 0),
         0,
@@ -196,6 +198,7 @@ export default async function BudgetPage() {
 
       return {
         ...category,
+        itemCount,
         budget,
         quoted,
         paid,
@@ -470,6 +473,7 @@ export default async function BudgetPage() {
             <thead className="bg-slate-50 text-left text-slate-600">
               <tr>
                 <th className="px-6 py-3 font-medium">Category</th>
+                <th className="px-6 py-3 text-center font-medium">Items</th>
                 <th className="px-6 py-3 text-right font-medium">Budgeted</th>
                 <th className="px-6 py-3 text-right font-medium">Quoted</th>
                 <th className="px-6 py-3 text-right font-medium">Paid</th>
@@ -481,6 +485,13 @@ export default async function BudgetPage() {
               {categorySummary.map((category) => (
                 <tr key={category.id}>
                   <td className="px-6 py-4 font-medium">{category.name}</td>
+
+                  <td className="px-6 py-4 text-center">
+                    <span className="rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-800">
+                      {category.itemCount}
+                    </span>
+                  </td>
+
                   <td className="px-6 py-4 text-right">
                     {formatCurrency(category.budget)}
                   </td>
@@ -607,6 +618,7 @@ export default async function BudgetPage() {
                 <th className="px-6 py-3 font-medium">Description</th>
                 <th className="px-6 py-3 font-medium">Event</th>
                 <th className="px-6 py-3 font-medium">Category</th>
+                <th className="px-6 py-3 text-center font-medium">Items</th>
                 <th className="px-6 py-3 text-right font-medium">Budgeted</th>
                 <th className="px-6 py-3 text-right font-medium">Quoted</th>
                 <th className="px-6 py-3 text-right font-medium">Paid</th>

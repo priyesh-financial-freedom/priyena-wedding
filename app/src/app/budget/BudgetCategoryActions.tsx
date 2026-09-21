@@ -8,6 +8,7 @@ type Props = {
   category: {
     id: string;
     name: string;
+    itemCount: number;
   };
 };
 
@@ -19,6 +20,8 @@ export default function BudgetCategoryActions({ category }: Props) {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState("");
+
+  const hasLinkedItems = category.itemCount > 0;
 
   function closeEditor() {
     setEditing(false);
@@ -124,10 +127,10 @@ export default function BudgetCategoryActions({ category }: Props) {
         <button
           type="button"
           onClick={handleDelete}
-          disabled={deleting}
+          disabled={deleting || hasLinkedItems}
           className="rounded-lg border border-red-200 px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {deleting ? "Deleting..." : "Delete"}
+          {hasLinkedItems ? `In Use (${category.itemCount})` : deleting ? "Deleting..." : "Delete"}
         </button>
       </div>
 
