@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabase";
 import AddBudgetItemModal from "./AddBudgetItemModal";
 import AddBudgetMasterModal from "./AddBudgetMasterModal";
 import BudgetItemActions from "./BudgetItemActions";
+import BudgetCategoryActions from "./BudgetCategoryActions";
 import SourceOfFunds from "./SourceOfFunds";
 
 function formatCurrency(value: number) {
@@ -52,7 +53,7 @@ export default async function BudgetPage() {
     supabase
       .from("budget_items")
       .select(
-        "id, event_id, category_id, description, budget_amount, quoted_amount, paid_amount, vendor_name, notes"
+        "id, event_id, category_id, description, budget_amount, quoted_amount, paid_amount, vendor_name, notes",
       )
       .eq("wedding_id", wedding.id)
       .order("created_at", { ascending: true }),
@@ -74,7 +75,6 @@ export default async function BudgetPage() {
       .from("budget_payments")
       .select("budget_item_id, category_id, payment_amount")
       .order("created_at", { ascending: true }),
-
   ]);
 
   const items = (budgetItems ?? []) as BudgetItem[];
@@ -90,7 +90,7 @@ export default async function BudgetPage() {
   }));
 
   const eventMap = new Map(
-    (events ?? []).map((event) => [event.id, event.name])
+    (events ?? []).map((event) => [event.id, event.name]),
   );
 
   const paymentData = payments ?? [];
@@ -104,7 +104,7 @@ export default async function BudgetPage() {
     if (payment.budget_item_id) {
       paidByItem.set(
         payment.budget_item_id,
-        (paidByItem.get(payment.budget_item_id) ?? 0) + amount
+        (paidByItem.get(payment.budget_item_id) ?? 0) + amount,
       );
 
       const item = items.find((item) => item.id === payment.budget_item_id);
@@ -112,13 +112,13 @@ export default async function BudgetPage() {
       if (item) {
         paidByCategory.set(
           item.category_id,
-          (paidByCategory.get(item.category_id) ?? 0) + amount
+          (paidByCategory.get(item.category_id) ?? 0) + amount,
         );
       }
     } else if (payment.category_id) {
       paidByCategory.set(
         payment.category_id,
-        (paidByCategory.get(payment.category_id) ?? 0) + amount
+        (paidByCategory.get(payment.category_id) ?? 0) + amount,
       );
     }
   });
@@ -129,85 +129,82 @@ export default async function BudgetPage() {
   }, 0);
 
   const categoryMap = new Map(
-    (categories ?? []).map((category) => [category.id, category.name])
+    (categories ?? []).map((category) => [category.id, category.name]),
   );
 
   const totalBudget = items.reduce(
     (sum, item) => sum + Number(item.budget_amount || 0),
-    0
+    0,
   );
 
   const totalQuoted = items.reduce(
     (sum, item) => sum + Number(item.quoted_amount || 0),
-    0
+    0,
   );
 
   const totalPaid = totalPaidFromExpenses;
 
   const totalBalance = totalBudget - totalPaid;
 
-  const eventSummary = eventOptions.map((event) => {
-    const matching = items.filter((item) => item.event_id === event.id);
+  const eventSummary = eventOptions
+    .map((event) => {
+      const matching = items.filter((item) => item.event_id === event.id);
 
-    const budget = matching.reduce(
-      (sum, item) => sum + Number(item.budget_amount || 0),
-      0
+      const budget = matching.reduce(
+        (sum, item) => sum + Number(item.budget_amount || 0),
+        0,
+      );
+
+      const quoted = matching.reduce(
+        (sum, item) => sum + Number(item.quoted_amount || 0),
+        0,
+      );
+
+      const paid = matching.reduce(
+        (sum, item) => sum + (paidByItem.get(item.id) ?? 0),
+        0,
+      );
+
+      return {
+        ...event,
+        budget,
+        quoted,
+        paid,
+        balance: budget - paid,
+      };
+    })
+    .filter(
+      (event) => event.budget !== 0 || event.quoted !== 0 || event.paid !== 0,
     );
 
-    const quoted = matching.reduce(
-      (sum, item) => sum + Number(item.quoted_amount || 0),
-      0
+  const categorySummary = categoryOptions
+    .map((category) => {
+      const matching = items.filter((item) => item.category_id === category.id);
+
+      const budget = matching.reduce(
+        (sum, item) => sum + Number(item.budget_amount || 0),
+        0,
+      );
+
+      const quoted = matching.reduce(
+        (sum, item) => sum + Number(item.quoted_amount || 0),
+        0,
+      );
+
+      const paid = paidByCategory.get(category.id) ?? 0;
+
+      return {
+        ...category,
+        budget,
+        quoted,
+        paid,
+        balance: budget - paid,
+      };
+    })
+    .filter(
+      (category) =>
+        category.budget !== 0 || category.quoted !== 0 || category.paid !== 0,
     );
-
-    const paid = matching.reduce(
-      (sum, item) => sum + (paidByItem.get(item.id) ?? 0),
-      0
-    );
-
-    return {
-      ...event,
-      budget,
-      quoted,
-      paid,
-      balance: budget - paid,
-    };
-  }).filter(
-    (event) =>
-      event.budget !== 0 ||
-      event.quoted !== 0 ||
-      event.paid !== 0
-  );
-
-  const categorySummary = categoryOptions.map((category) => {
-    const matching = items.filter(
-      (item) => item.category_id === category.id
-    );
-
-    const budget = matching.reduce(
-      (sum, item) => sum + Number(item.budget_amount || 0),
-      0
-    );
-
-    const quoted = matching.reduce(
-      (sum, item) => sum + Number(item.quoted_amount || 0),
-      0
-    );
-
-    const paid = paidByCategory.get(category.id) ?? 0;
-
-    return {
-      ...category,
-      budget,
-      quoted,
-      paid,
-      balance: budget - paid,
-    };
-  }).filter(
-    (category) =>
-      category.budget !== 0 ||
-      category.quoted !== 0 ||
-      category.paid !== 0
-  );
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
@@ -324,15 +321,11 @@ export default async function BudgetPage() {
             <div className="mt-3 grid grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="text-slate-500">Budgeted</span>
-                <p className="font-semibold">
-                  {formatCurrency(totalBudget)}
-                </p>
+                <p className="font-semibold">{formatCurrency(totalBudget)}</p>
               </div>
               <div>
                 <span className="text-slate-500">Quoted</span>
-                <p className="font-semibold">
-                  {formatCurrency(totalQuoted)}
-                </p>
+                <p className="font-semibold">{formatCurrency(totalQuoted)}</p>
               </div>
               <div>
                 <span className="text-slate-500">Paid</span>
@@ -340,9 +333,7 @@ export default async function BudgetPage() {
               </div>
               <div>
                 <span className="text-slate-500">Balance</span>
-                <p className="font-semibold">
-                  {formatCurrency(totalBalance)}
-                </p>
+                <p className="font-semibold">{formatCurrency(totalBalance)}</p>
               </div>
             </div>
           </div>
@@ -358,6 +349,7 @@ export default async function BudgetPage() {
                 <th className="px-6 py-3 text-right font-medium">Quoted</th>
                 <th className="px-6 py-3 text-right font-medium">Paid</th>
                 <th className="px-6 py-3 text-right font-medium">Balance</th>
+                <th className="px-6 py-3 text-right font-medium">Actions</th>
               </tr>
             </thead>
 
@@ -421,7 +413,13 @@ export default async function BudgetPage() {
         <div className="divide-y md:hidden">
           {categorySummary.map((category) => (
             <div key={category.id} className="p-6">
-              <p className="text-xl font-bold text-slate-900">{category.name}</p>
+              <div className="flex items-start justify-between gap-4">
+                <p className="text-xl font-bold text-slate-900">
+                  {category.name}
+                </p>
+
+                <BudgetCategoryActions category={category} />
+              </div>
 
               <div className="mt-5 grid grid-cols-2 gap-5">
                 <div>
@@ -485,6 +483,11 @@ export default async function BudgetPage() {
                   <td className="px-6 py-4 text-right font-medium">
                     {formatCurrency(category.balance)}
                   </td>
+                  <td className="px-6 py-4">
+                    <div className="flex justify-end">
+                      <BudgetCategoryActions category={category} />
+                    </div>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -495,7 +498,7 @@ export default async function BudgetPage() {
       {/* BUDGET ITEMS */}
       <SourceOfFunds />
 
-<section className="mt-6 overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-sm">
+      <section className="mt-6 overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-sm">
         <div className="border-b px-5 py-5 sm:px-6">
           <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">
             Budget Items
@@ -547,14 +550,18 @@ export default async function BudgetPage() {
 
                   <div className="mt-6 grid grid-cols-2 gap-5 rounded-xl border border-slate-200 bg-slate-50 p-5">
                     <div>
-                      <p className="text-sm font-medium text-slate-600">Budgeted</p>
+                      <p className="text-sm font-medium text-slate-600">
+                        Budgeted
+                      </p>
                       <p className="mt-1 text-lg font-bold text-slate-900">
                         {formatCurrency(Number(item.budget_amount || 0))}
                       </p>
                     </div>
 
                     <div>
-                      <p className="text-sm font-medium text-slate-600">Quoted</p>
+                      <p className="text-sm font-medium text-slate-600">
+                        Quoted
+                      </p>
                       <p className="mt-1 text-lg font-bold text-slate-900">
                         {formatCurrency(Number(item.quoted_amount || 0))}
                       </p>
@@ -563,12 +570,14 @@ export default async function BudgetPage() {
                     <div>
                       <p className="text-sm font-medium text-slate-600">Paid</p>
                       <p className="mt-1 text-lg font-bold text-slate-900">
-                        {formatCurrency((paidByItem.get(item.id) ?? 0))}
+                        {formatCurrency(paidByItem.get(item.id) ?? 0)}
                       </p>
                     </div>
 
                     <div>
-                      <p className="text-sm font-medium text-slate-600">Balance</p>
+                      <p className="text-sm font-medium text-slate-600">
+                        Balance
+                      </p>
                       <p className="mt-1 text-lg font-bold text-slate-900">
                         {formatCurrency(balance)}
                       </p>
@@ -630,7 +639,7 @@ export default async function BudgetPage() {
                     </td>
 
                     <td className="px-6 py-4 text-right">
-                      {formatCurrency((paidByItem.get(item.id) ?? 0))}
+                      {formatCurrency(paidByItem.get(item.id) ?? 0)}
                     </td>
 
                     <td className="px-6 py-4 text-right font-medium">
