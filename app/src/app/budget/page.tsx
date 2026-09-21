@@ -5,6 +5,7 @@ import AddBudgetItemModal from "./AddBudgetItemModal";
 import AddBudgetMasterModal from "./AddBudgetMasterModal";
 import BudgetItemActions from "./BudgetItemActions";
 import BudgetCategoryActions from "./BudgetCategoryActions";
+import BudgetEventActions from "./BudgetEventActions";
 import SourceOfFunds from "./SourceOfFunds";
 
 function formatCurrency(value: number) {
@@ -282,7 +283,11 @@ export default async function BudgetPage() {
         <div className="divide-y md:hidden">
           {eventSummary.map((event) => (
             <div key={event.id} className="p-6">
-              <p className="text-xl font-bold text-slate-900">{event.name}</p>
+              <div className="flex items-start justify-between gap-4">
+                <p className="text-xl font-bold text-slate-900">{event.name}</p>
+
+                <BudgetEventActions event={event} />
+              </div>
 
               <div className="mt-5 grid grid-cols-2 gap-5">
                 <div>
@@ -368,6 +373,11 @@ export default async function BudgetPage() {
                   </td>
                   <td className="px-6 py-4 text-right font-medium">
                     {formatCurrency(event.balance)}
+                  </td>
+                  <td className="px-6 py-4">
+                    <div className="flex justify-end">
+                      <BudgetEventActions event={event} />
+                    </div>
                   </td>
                 </tr>
               ))}
