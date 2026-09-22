@@ -52,7 +52,7 @@ export default function ManageHotelPage() {
   const [hotel, setHotel] = useState<Hotel | null>(null);
   const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
   const [allocatedRoomTypeIds, setAllocatedRoomTypeIds] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
 
   const [loading, setLoading] = useState(true);
@@ -131,7 +131,7 @@ export default function ManageHotelPage() {
 
       if (allocationsResult.data?.length) {
         const allocationIdsList = allocationsResult.data.map(
-          (allocation) => allocation.id
+          (allocation) => allocation.id,
         );
 
         const { data: allocationRooms, error: allocationRoomsError } =
@@ -141,10 +141,7 @@ export default function ManageHotelPage() {
             .in("allocation_id", allocationIdsList);
 
         if (allocationRoomsError) {
-          console.error(
-            "Error loading allocated rooms:",
-            allocationRoomsError
-          );
+          console.error("Error loading allocated rooms:", allocationRoomsError);
         }
 
         (allocationRooms ?? []).forEach((room) => {
@@ -164,14 +161,13 @@ export default function ManageHotelPage() {
   const stats = useMemo(() => {
     const totalRooms = roomTypes.reduce(
       (total, room) => total + Number(room.number_of_rooms),
-      0
+      0,
     );
 
     const totalCapacity = roomTypes.reduce(
       (total, room) =>
-        total +
-        Number(room.number_of_rooms) * Number(room.occupancy_capacity),
-      0
+        total + Number(room.number_of_rooms) * Number(room.occupancy_capacity),
+      0,
     );
 
     return {
@@ -188,11 +184,7 @@ export default function ManageHotelPage() {
       return;
     }
 
-    if (
-      checkInDate &&
-      checkOutDate &&
-      checkOutDate < checkInDate
-    ) {
+    if (checkInDate && checkOutDate && checkOutDate < checkInDate) {
       setHotelError("Check-out date cannot be before check-in date.");
       return;
     }
@@ -309,13 +301,13 @@ export default function ManageHotelPage() {
   async function deleteRoom(room: RoomType) {
     if (allocatedRoomTypeIds.has(room.id)) {
       window.alert(
-        "This room type is already used in an accommodation allocation and cannot be deleted."
+        "This room type is already used in an accommodation allocation and cannot be deleted.",
       );
       return;
     }
 
     const confirmed = window.confirm(
-      `Delete ${room.room_type}?\\n\\nThis will remove this room type from the hotel's inventory.`
+      `Delete ${room.room_type}?\\n\\nThis will remove this room type from the hotel's inventory.`,
     );
 
     if (!confirmed) {
@@ -341,9 +333,7 @@ export default function ManageHotelPage() {
       <main className="min-h-screen bg-[#fffaf5] p-6 md:p-8">
         <div className="mx-auto max-w-6xl">
           <div className="rounded-xl bg-white p-10 text-center shadow-sm">
-            <p className="text-sm text-slate-500">
-              Loading hotel...
-            </p>
+            <p className="text-sm text-slate-500">Loading hotel...</p>
           </div>
         </div>
       </main>
@@ -387,9 +377,7 @@ export default function ManageHotelPage() {
           </h1>
 
           {hotel.location && (
-            <p className="mt-1 text-sm text-slate-500">
-              {hotel.location}
-            </p>
+            <p className="mt-1 text-sm text-slate-500">{hotel.location}</p>
           )}
         </div>
 
@@ -461,9 +449,7 @@ export default function ManageHotelPage() {
                   <input
                     type="text"
                     value={contactPerson}
-                    onChange={(event) =>
-                      setContactPerson(event.target.value)
-                    }
+                    onChange={(event) => setContactPerson(event.target.value)}
                     className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
                   />
                 </div>
@@ -475,9 +461,7 @@ export default function ManageHotelPage() {
                   <input
                     type="tel"
                     value={contactPhone}
-                    onChange={(event) =>
-                      setContactPhone(event.target.value)
-                    }
+                    onChange={(event) => setContactPhone(event.target.value)}
                     className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
                   />
                 </div>
@@ -490,9 +474,7 @@ export default function ManageHotelPage() {
                   </label>
                   <DateInput
                     value={checkInDate}
-                    onChange={(event) =>
-                      setCheckInDate(event.target.value)
-                    }
+                    onChange={(event) => setCheckInDate(event.target.value)}
                     className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
                   />
                 </div>
@@ -503,9 +485,7 @@ export default function ManageHotelPage() {
                   </label>
                   <DateInput
                     value={checkOutDate}
-                    onChange={(event) =>
-                      setCheckOutDate(event.target.value)
-                    }
+                    onChange={(event) => setCheckOutDate(event.target.value)}
                     className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
                   />
                 </div>
@@ -603,7 +583,10 @@ export default function ManageHotelPage() {
                         <span>
                           Rate:{" "}
                           <strong className="font-medium text-slate-700">
-                            ₹{Number(room.rate_per_night).toLocaleString("en-IN")}
+                            ₹
+                            {Number(room.rate_per_night).toLocaleString(
+                              "en-IN",
+                            )}
                           </strong>
                           /night
                         </span>

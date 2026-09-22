@@ -37,9 +37,7 @@ export default function AccommodationPage() {
   const [weddingId, setWeddingId] = useState<string | null>(null);
   const [hotels, setHotels] = useState<Hotel[]>([]);
   const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
-  const [allocationRooms, setAllocationRooms] = useState<AllocationRoom[]>(
-    []
-  );
+  const [allocationRooms, setAllocationRooms] = useState<AllocationRoom[]>([]);
   const [loading, setLoading] = useState(true);
   const [refresh, setRefresh] = useState(0);
 
@@ -85,7 +83,10 @@ export default function AccommodationPage() {
       }
 
       if (allocationResult.error) {
-        console.error("Error loading accommodation allocations:", allocationResult.error);
+        console.error(
+          "Error loading accommodation allocations:",
+          allocationResult.error,
+        );
       }
 
       setWeddingId(weddingResult.data?.id ?? null);
@@ -101,13 +102,12 @@ export default function AccommodationPage() {
   const roomStats = useMemo(() => {
     const totalRooms = roomTypes.reduce(
       (total, room) => total + room.number_of_rooms,
-      0
+      0,
     );
 
     const totalCapacity = roomTypes.reduce(
-      (total, room) =>
-        total + room.number_of_rooms * room.occupancy_capacity,
-      0
+      (total, room) => total + room.number_of_rooms * room.occupancy_capacity,
+      0,
     );
 
     const allocatedRooms = allocationRooms.length;
@@ -122,7 +122,7 @@ export default function AccommodationPage() {
 
   async function deleteHotel(hotel: Hotel) {
     const confirmed = window.confirm(
-      `Delete ${hotel.hotel_name}?\\n\\nThis will also remove its room inventory and accommodation allocations.`
+      `Delete ${hotel.hotel_name}?\\n\\nThis will also remove its room inventory and accommodation allocations.`,
     );
 
     if (!confirmed) {
@@ -153,11 +153,11 @@ export default function AccommodationPage() {
     const hotelRoomTypeIds = new Set(
       roomTypes
         .filter((room) => room.hotel_id === hotelId)
-        .map((room) => room.id)
+        .map((room) => room.id),
     );
 
     return allocationRooms.filter((room) =>
-      hotelRoomTypeIds.has(room.room_type_id)
+      hotelRoomTypeIds.has(room.room_type_id),
     ).length;
   }
 
@@ -166,22 +166,20 @@ export default function AccommodationPage() {
       <div className="mx-auto max-w-6xl">
         <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900">
-              Accommodation
-            </h1>
+            <h1 className="text-3xl font-bold text-slate-900">Accommodation</h1>
             <p className="mt-1 text-sm text-slate-500">
               Manage hotels, room inventory and guest accommodation
             </p>
           </div>
 
           <Link
-                href="/accommodation/allocations"
-                className="rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-              >
-                Room Allocation
-              </Link>
+            href="/accommodation/allocations"
+            className="rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+          >
+            Room Allocation
+          </Link>
 
-              <Link
+          <Link
             href="/accommodation/new"
             className="inline-flex items-center justify-center rounded-lg bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
           >
@@ -233,9 +231,7 @@ export default function AccommodationPage() {
           </div>
         ) : hotels.length === 0 ? (
           <div className="rounded-xl bg-white p-10 text-center shadow-sm">
-            <p className="font-medium text-slate-700">
-              No hotels added yet
-            </p>
+            <p className="font-medium text-slate-700">No hotels added yet</p>
             <p className="mt-1 text-sm text-slate-500">
               Add your first hotel to start managing room inventory.
             </p>
@@ -296,8 +292,13 @@ export default function AccommodationPage() {
 
                         {(hotel.check_in_date || hotel.check_out_date) && (
                           <p className="mt-2 text-sm text-slate-500">
-                            {hotel.check_in_date ? formatDate(hotel.check_in_date) : "TBD"} →{" "}
-                            {hotel.check_out_date ? formatDate(hotel.check_out_date) : "TBD"}
+                            {hotel.check_in_date
+                              ? formatDate(hotel.check_in_date)
+                              : "TBD"}{" "}
+                            →{" "}
+                            {hotel.check_out_date
+                              ? formatDate(hotel.check_out_date)
+                              : "TBD"}
                           </p>
                         )}
                       </div>

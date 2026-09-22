@@ -55,7 +55,7 @@ export default function SourceOfFunds() {
         supabase
           .from("funding_sources")
           .select(
-            "id, source_name, relationship, planned_amount, received_amount, expected_date, notes"
+            "id, source_name, relationship, planned_amount, received_amount, expected_date, notes",
           )
           .eq("wedding_id", wedding.id)
           .order("created_at", { ascending: true }),
@@ -76,8 +76,8 @@ export default function SourceOfFunds() {
     setBudgetTotal(
       (budgetData || []).reduce(
         (sum, item) => sum + Number(item.budget_amount || 0),
-        0
-      )
+        0,
+      ),
     );
 
     setLoading(false);
@@ -90,12 +90,12 @@ export default function SourceOfFunds() {
   const totals = useMemo(() => {
     const planned = sources.reduce(
       (sum, source) => sum + Number(source.planned_amount || 0),
-      0
+      0,
     );
 
     const received = sources.reduce(
       (sum, source) => sum + Number(source.received_amount || 0),
-      0
+      0,
     );
 
     return {
@@ -207,7 +207,7 @@ export default function SourceOfFunds() {
 
   const deleteSource = async (source: FundingSource) => {
     const confirmed = window.confirm(
-      `Delete "${source.source_name}" from Source of Funds?`
+      `Delete "${source.source_name}" from Source of Funds?`,
     );
 
     if (!confirmed) return;
@@ -369,7 +369,7 @@ export default function SourceOfFunds() {
                       <div className="mt-1 text-sm font-medium text-stone-900">
                         {source.expected_date
                           ? new Date(
-                              `${source.expected_date}T00:00:00`
+                              `${source.expected_date}T00:00:00`,
                             ).toLocaleDateString("en-IN", {
                               day: "2-digit",
                               month: "short",

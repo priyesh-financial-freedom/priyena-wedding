@@ -37,27 +37,20 @@ export default function AddFunctionModal() {
       .single();
 
     if (weddingError || !wedding) {
-      setError(
-        weddingError?.message ||
-          "Priyena Wedding could not be found."
-      );
+      setError(weddingError?.message || "Priyena Wedding could not be found.");
       setSaving(false);
       return;
     }
 
-    const { error: insertError } = await supabase
-      .from("functions")
-      .insert({
-        wedding_id: wedding.id,
-        name: name.trim(),
-        function_date: functionDate || null,
-        venue: venue.trim() || null,
-        start_time: startTime || null,
-        end_time: endTime || null,
-        sequence_number: sequenceNumber
-          ? Number(sequenceNumber)
-          : null,
-      });
+    const { error: insertError } = await supabase.from("functions").insert({
+      wedding_id: wedding.id,
+      name: name.trim(),
+      function_date: functionDate || null,
+      venue: venue.trim() || null,
+      start_time: startTime || null,
+      end_time: endTime || null,
+      sequence_number: sequenceNumber ? Number(sequenceNumber) : null,
+    });
 
     if (insertError) {
       setError(insertError.message);
@@ -95,9 +88,7 @@ export default function AddFunctionModal() {
           <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
             <div className="flex items-start justify-between">
               <div>
-                <h2 className="text-2xl font-semibold">
-                  Add Function
-                </h2>
+                <h2 className="text-2xl font-semibold">Add Function</h2>
                 <p className="mt-1 text-sm text-slate-500">
                   Add a wedding function to Priyena Wedding.
                 </p>
@@ -157,9 +148,7 @@ export default function AddFunctionModal() {
                   <input
                     type="time"
                     value={startTime}
-                    onChange={(e) =>
-                      setStartTime(e.target.value)
-                    }
+                    onChange={(e) => setStartTime(e.target.value)}
                     className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
                   />
                 </div>
@@ -171,9 +160,7 @@ export default function AddFunctionModal() {
                   <input
                     type="time"
                     value={endTime}
-                    onChange={(e) =>
-                      setEndTime(e.target.value)
-                    }
+                    onChange={(e) => setEndTime(e.target.value)}
                     className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
                   />
                 </div>
@@ -187,9 +174,7 @@ export default function AddFunctionModal() {
                   type="number"
                   min="1"
                   value={sequenceNumber}
-                  onChange={(e) =>
-                    setSequenceNumber(e.target.value)
-                  }
+                  onChange={(e) => setSequenceNumber(e.target.value)}
                   placeholder="1"
                   className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2"
                 />

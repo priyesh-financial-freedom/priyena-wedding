@@ -130,7 +130,11 @@ export default function BudgetCategoryActions({ category }: Props) {
           disabled={deleting || hasLinkedItems}
           className="rounded-lg border border-red-200 px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {hasLinkedItems ? `In Use (${category.itemCount})` : deleting ? "Deleting..." : "Delete"}
+          {hasLinkedItems
+            ? `In Use (${category.itemCount})`
+            : deleting
+              ? "Deleting..."
+              : "Delete"}
         </button>
       </div>
 

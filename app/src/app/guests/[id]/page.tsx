@@ -11,11 +11,7 @@ export default async function GuestFamilyPage({ params }: PageProps) {
   const { id } = await params;
 
   const [familyResult, ownersResult] = await Promise.all([
-    supabase
-      .from("guest_families")
-      .select("*")
-      .eq("id", id)
-      .single(),
+    supabase.from("guest_families").select("*").eq("id", id).single(),
 
     supabase
       .from("family_members")
@@ -31,9 +27,8 @@ export default async function GuestFamilyPage({ params }: PageProps) {
   const family = familyResult.data;
 
   const owner =
-    ownersResult.data?.find(
-      (member) => member.id === family.guest_owner_id
-    ) ?? null;
+    ownersResult.data?.find((member) => member.id === family.guest_owner_id) ??
+    null;
 
   return (
     <main className="min-h-screen bg-slate-50 p-6 md:p-8">
@@ -54,9 +49,7 @@ export default async function GuestFamilyPage({ params }: PageProps) {
                 <h1 className="text-3xl font-bold text-slate-900">
                   {family.family_name}
                 </h1>
-
               </div>
-
             </div>
 
             <div
@@ -111,9 +104,7 @@ export default async function GuestFamilyPage({ params }: PageProps) {
         {/* Notes */}
         {family.notes && (
           <section className="mb-6 rounded-2xl bg-white p-6 shadow-sm md:p-8">
-            <h2 className="mb-3 text-lg font-semibold text-slate-900">
-              Notes
-            </h2>
+            <h2 className="mb-3 text-lg font-semibold text-slate-900">Notes</h2>
 
             <p className="whitespace-pre-wrap text-sm leading-6 text-slate-600">
               {family.notes}

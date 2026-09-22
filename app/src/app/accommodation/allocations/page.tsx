@@ -147,7 +147,7 @@ export default function AccommodationAllocationsPage() {
       supabase
         .from("accommodation_room_types")
         .select(
-          "id, hotel_id, room_type, number_of_rooms, occupancy_capacity, rate_per_night"
+          "id, hotel_id, room_type, number_of_rooms, occupancy_capacity, rate_per_night",
         )
         .order("room_type"),
 
@@ -167,7 +167,7 @@ export default function AccommodationAllocationsPage() {
       supabase
         .from("accommodation_allocations")
         .select(
-          "id, guest_family_id, guest_id, hotel_id, check_in_date, check_out_date, status, notes"
+          "id, guest_family_id, guest_id, hotel_id, check_in_date, check_out_date, status, notes",
         )
         .eq("wedding_id", wedding.id)
         .neq("status", "cancelled")
@@ -197,9 +197,7 @@ export default function AccommodationAllocationsPage() {
 
     const { data: rooms, error: roomsError } = await supabase
       .from("accommodation_allocation_rooms")
-      .select(
-        "id, allocation_id, room_type_id, room_number, persons_allocated"
-      )
+      .select("id, allocation_id, room_type_id, room_number, persons_allocated")
       .in("allocation_id", allocationIds);
 
     if (roomsError) {
@@ -216,7 +214,7 @@ export default function AccommodationAllocationsPage() {
       const { data: occupantRows, error: occupantsError } = await supabase
         .from("accommodation_room_occupants")
         .select(
-          "id, allocation_room_id, guest_family_id, guest_id, persons_allocated"
+          "id, allocation_room_id, guest_family_id, guest_id, persons_allocated",
         )
         .in("allocation_room_id", roomIds);
 
@@ -231,7 +229,7 @@ export default function AccommodationAllocationsPage() {
 
     for (const allocation of allocationData) {
       const allocationRooms = (rooms || []).filter(
-        (room) => room.allocation_id === allocation.id
+        (room) => room.allocation_id === allocation.id,
       );
 
       for (const room of allocationRooms) {
@@ -239,7 +237,7 @@ export default function AccommodationAllocationsPage() {
           allocation,
           room,
           occupants: occupantsData.filter(
-            (occupant) => occupant.allocation_room_id === room.id
+            (occupant) => occupant.allocation_room_id === room.id,
           ),
         });
       }
@@ -257,12 +255,12 @@ export default function AccommodationAllocationsPage() {
 
   const selectedHotelRoomTypes = useMemo(
     () => roomTypes.filter((room) => room.hotel_id === hotelId),
-    [roomTypes, hotelId]
+    [roomTypes, hotelId],
   );
 
   const occupancyTotal = occupants.reduce(
     (sum, occupant) => sum + Number(occupant.persons || 0),
-    0
+    0,
   );
 
   const capacity = selectedRoomType?.occupancy_capacity || 0;
@@ -271,27 +269,23 @@ export default function AccommodationAllocationsPage() {
   const allocatedFamilyIds = useMemo(
     () =>
       new Set(
-        allocations
-          .flatMap((row) =>
-            row.occupants
-              .map((occupant) => occupant.guest_family_id)
-              .filter(Boolean)
-          ) as string[]
+        allocations.flatMap((row) =>
+          row.occupants
+            .map((occupant) => occupant.guest_family_id)
+            .filter(Boolean),
+        ) as string[],
       ),
-    [allocations]
+    [allocations],
   );
 
   const allocatedGuestIds = useMemo(
     () =>
       new Set(
-        allocations
-          .flatMap((row) =>
-            row.occupants
-              .map((occupant) => occupant.guest_id)
-              .filter(Boolean)
-          ) as string[]
+        allocations.flatMap((row) =>
+          row.occupants.map((occupant) => occupant.guest_id).filter(Boolean),
+        ) as string[],
       ),
-    [allocations]
+    [allocations],
   );
 
   const usedRoomCounts = useMemo(() => {
@@ -300,7 +294,7 @@ export default function AccommodationAllocationsPage() {
     for (const row of allocations) {
       const activeOccupants = row.occupants.reduce(
         (sum, occupant) => sum + Number(occupant.persons_allocated || 0),
-        0
+        0,
       );
 
       if (activeOccupants > 0) {
@@ -318,22 +312,21 @@ export default function AccommodationAllocationsPage() {
       row.occupants.reduce(
         (occupantSum, occupant) =>
           occupantSum + Number(occupant.persons_allocated || 0),
-        0
+        0,
       ),
-    0
+    0,
   );
 
   const totalRooms = roomTypes.reduce(
     (sum, room) => sum + Number(room.number_of_rooms || 0),
-    0
+    0,
   );
 
   const totalCapacity = roomTypes.reduce(
     (sum, room) =>
       sum +
-      Number(room.number_of_rooms || 0) *
-        Number(room.occupancy_capacity || 0),
-    0
+      Number(room.number_of_rooms || 0) * Number(room.occupancy_capacity || 0),
+    0,
   );
 
   function addOccupant() {
@@ -355,14 +348,11 @@ export default function AccommodationAllocationsPage() {
     });
   }
 
-  function updateOccupant(
-    key: string,
-    changes: Partial<NewOccupant>
-  ) {
+  function updateOccupant(key: string, changes: Partial<NewOccupant>) {
     setOccupants((current) =>
       current.map((occupant) =>
-        occupant.key === key ? { ...occupant, ...changes } : occupant
-      )
+        occupant.key === key ? { ...occupant, ...changes } : occupant,
+      ),
     );
   }
 
@@ -376,7 +366,7 @@ export default function AccommodationAllocationsPage() {
 
     if (!roomNumber.trim()) {
       setError(
-        "Please enter a room number. A physical room needs a room number so occupants can share it."
+        "Please enter a room number. A physical room needs a room number so occupants can share it.",
       );
       return;
     }
@@ -418,11 +408,11 @@ export default function AccommodationAllocationsPage() {
       if (
         occupant.type === "family" &&
         occupant.personsNumber >
-          (families.find((family) => family.id === occupant.id)
-            ?.guest_count || 0)
+          (families.find((family) => family.id === occupant.id)?.guest_count ||
+            0)
       ) {
         setError(
-          "A family cannot have more persons allocated than its registered guest count."
+          "A family cannot have more persons allocated than its registered guest count.",
         );
         return;
       }
@@ -443,7 +433,7 @@ export default function AccommodationAllocationsPage() {
 
     if (selectedRoomType && occupancyTotal > capacity) {
       setError(
-        `This room has capacity for ${capacity} persons, but you have allocated ${occupancyTotal}.`
+        `This room has capacity for ${capacity} persons, but you have allocated ${occupancyTotal}.`,
       );
       return;
     }
@@ -467,13 +457,11 @@ export default function AccommodationAllocationsPage() {
         status,
         notes: notes.trim() || null,
         guest_family_id:
-          cleanedOccupants.length === 1 &&
-          cleanedOccupants[0].type === "family"
+          cleanedOccupants.length === 1 && cleanedOccupants[0].type === "family"
             ? cleanedOccupants[0].id
             : null,
         guest_id:
-          cleanedOccupants.length === 1 &&
-          cleanedOccupants[0].type === "guest"
+          cleanedOccupants.length === 1 && cleanedOccupants[0].type === "guest"
             ? cleanedOccupants[0].id
             : null,
       })
@@ -481,9 +469,7 @@ export default function AccommodationAllocationsPage() {
       .single();
 
     if (allocationError || !allocation) {
-      setError(
-        allocationError?.message || "Could not create room allocation."
-      );
+      setError(allocationError?.message || "Could not create room allocation.");
       setSaving(false);
       return;
     }
@@ -512,8 +498,7 @@ export default function AccommodationAllocationsPage() {
 
     const occupantRows = cleanedOccupants.map((occupant) => ({
       allocation_room_id: allocationRoom.id,
-      guest_family_id:
-        occupant.type === "family" ? occupant.id : null,
+      guest_family_id: occupant.type === "family" ? occupant.id : null,
       guest_id: occupant.type === "guest" ? occupant.id : null,
       persons_allocated: occupant.personsNumber,
     }));
@@ -590,15 +575,13 @@ export default function AccommodationAllocationsPage() {
 
   function roomTypeName(roomTypeIdValue: string) {
     return (
-      roomTypes.find((room) => room.id === roomTypeIdValue)?.room_type ||
-      "Room"
+      roomTypes.find((room) => room.id === roomTypeIdValue)?.room_type || "Room"
     );
   }
 
   function hotelName(hotelIdValue: string) {
     return (
-      hotels.find((hotel) => hotel.id === hotelIdValue)?.hotel_name ||
-      "Hotel"
+      hotels.find((hotel) => hotel.id === hotelIdValue)?.hotel_name || "Hotel"
     );
   }
 
@@ -725,10 +708,7 @@ export default function AccommodationAllocationsPage() {
 
                   {selectedHotelRoomTypes.map((room) => {
                     const used = usedRoomCounts[room.id] || 0;
-                    const available = Math.max(
-                      0,
-                      room.number_of_rooms - used
-                    );
+                    const available = Math.max(0, room.number_of_rooms - used);
 
                     return (
                       <option
@@ -796,13 +776,13 @@ export default function AccommodationAllocationsPage() {
                   const availableFamilies = families.filter(
                     (family) =>
                       !allocatedFamilyIds.has(family.id) ||
-                      family.id === occupant.id
+                      family.id === occupant.id,
                   );
 
                   const availableGuests = guests.filter(
                     (guest) =>
                       !allocatedGuestIds.has(guest.id) ||
-                      guest.id === occupant.id
+                      guest.id === occupant.id,
                   );
 
                   return (
@@ -849,7 +829,7 @@ export default function AccommodationAllocationsPage() {
 
                             if (occupant.type === "family") {
                               const family = families.find(
-                                (item) => item.id === value
+                                (item) => item.id === value,
                               );
 
                               updateOccupant(occupant.key, {
@@ -869,16 +849,14 @@ export default function AccommodationAllocationsPage() {
                         >
                           <option value="">
                             Select{" "}
-                            {occupant.type === "family"
-                              ? "family"
-                              : "guest"}
+                            {occupant.type === "family" ? "family" : "guest"}
                           </option>
 
                           {occupant.type === "family"
                             ? availableFamilies.map((family) => (
                                 <option key={family.id} value={family.id}>
-                                  {family.family_name} —{" "}
-                                  {family.guest_count} persons
+                                  {family.family_name} — {family.guest_count}{" "}
+                                  persons
                                 </option>
                               ))
                             : availableGuests.map((guest) => (
@@ -910,9 +888,7 @@ export default function AccommodationAllocationsPage() {
                 <button
                   type="button"
                   onClick={addOccupant}
-                  disabled={
-                    !selectedRoomType || occupancyTotal >= capacity
-                  }
+                  disabled={!selectedRoomType || occupancyTotal >= capacity}
                   className="rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   + Add Another Occupant
@@ -1034,13 +1010,12 @@ export default function AccommodationAllocationsPage() {
                 const roomOccupancy = row.occupants.reduce(
                   (sum, occupant) =>
                     sum + Number(occupant.persons_allocated || 0),
-                  0
+                  0,
                 );
 
                 const roomCapacity =
-                  roomTypes.find(
-                    (room) => room.id === row.room.room_type_id
-                  )?.occupancy_capacity || 0;
+                  roomTypes.find((room) => room.id === row.room.room_type_id)
+                    ?.occupancy_capacity || 0;
 
                 return (
                   <div
@@ -1079,8 +1054,7 @@ export default function AccommodationAllocationsPage() {
                         </p>
 
                         <p className="text-xs text-slate-500">
-                          {Math.max(0, roomCapacity - roomOccupancy)}{" "}
-                          remaining
+                          {Math.max(0, roomCapacity - roomOccupancy)} remaining
                         </p>
                       </div>
                     </div>
@@ -1128,9 +1102,7 @@ export default function AccommodationAllocationsPage() {
                     <div className="mt-4 flex justify-end">
                       <button
                         type="button"
-                        onClick={() =>
-                          cancelAllocation(row.allocation.id)
-                        }
+                        onClick={() => cancelAllocation(row.allocation.id)}
                         className="rounded-lg border border-red-200 px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50"
                       >
                         Cancel Allocation

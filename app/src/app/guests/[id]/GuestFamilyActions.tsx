@@ -31,9 +31,7 @@ export default function GuestFamilyActions({ family, owners }: Props) {
   const [error, setError] = useState("");
 
   const [familyName, setFamilyName] = useState(family.family_name);
-  const [guestCount, setGuestCount] = useState(
-    String(family.guest_count ?? 1)
-  );
+  const [guestCount, setGuestCount] = useState(String(family.guest_count ?? 1));
   const [ownerId, setOwnerId] = useState(family.guest_owner_id);
   const [rsvpStatus, setRsvpStatus] = useState(family.rsvp_status);
   const [notes, setNotes] = useState(family.notes ?? "");
@@ -111,7 +109,7 @@ export default function GuestFamilyActions({ family, owners }: Props) {
 
   async function deleteFamily() {
     const confirmed = window.confirm(
-      `Delete ${family.family_name}?\n\nThis will permanently delete this family invitation and any guest records associated with it.`
+      `Delete ${family.family_name}?\n\nThis will permanently delete this family invitation and any guest records associated with it.`,
     );
 
     if (!confirmed) {
@@ -139,9 +137,7 @@ export default function GuestFamilyActions({ family, owners }: Props) {
     return (
       <section className="rounded-2xl bg-white p-6 shadow-sm md:p-8">
         <div className="mb-6">
-          <h2 className="text-lg font-semibold text-slate-900">
-            Edit Family
-          </h2>
+          <h2 className="text-lg font-semibold text-slate-900">Edit Family</h2>
           <p className="mt-1 text-sm text-slate-500">
             Update the family invitation details.
           </p>
@@ -166,9 +162,7 @@ export default function GuestFamilyActions({ family, owners }: Props) {
 
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <label className={labelClass()}>
-                Number of Persons *
-              </label>
+              <label className={labelClass()}>Number of Persons *</label>
               <input
                 type="number"
                 min="1"
@@ -248,9 +242,7 @@ export default function GuestFamilyActions({ family, owners }: Props) {
   return (
     <section className="rounded-2xl bg-white p-6 shadow-sm md:p-8">
       <div className="mb-6">
-        <h2 className="text-lg font-semibold text-slate-900">
-          Family Actions
-        </h2>
+        <h2 className="text-lg font-semibold text-slate-900">Family Actions</h2>
         <p className="mt-1 text-sm text-slate-500">
           Manage this family invitation.
         </p>
@@ -263,9 +255,7 @@ export default function GuestFamilyActions({ family, owners }: Props) {
       )}
 
       <div className="mb-6">
-        <p className="mb-2 text-sm font-medium text-slate-700">
-          Change RSVP
-        </p>
+        <p className="mb-2 text-sm font-medium text-slate-700">Change RSVP</p>
 
         <div className="flex flex-wrap gap-2">
           {[

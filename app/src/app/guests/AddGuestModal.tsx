@@ -25,7 +25,7 @@ export default function AddGuestModal({
   const router = useRouter();
 
   const [mode, setMode] = useState<"choice" | "family" | "individual">(
-    "choice"
+    "choice",
   );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -124,19 +124,17 @@ export default function AddGuestModal({
 
     setSaving(true);
 
-    const { error: insertError } = await supabase
-      .from("guests")
-      .insert({
-        wedding_id: weddingId,
-        guest_family_id: null,
-        guest_owner_id: ownerId,
-        full_name: individualName.trim(),
-        invited: true,
-        rsvp_status: rsvpStatus,
-        notes: notes.trim() || null,
-        age_group: "adult",
-        attendance_status: "pending",
-      });
+    const { error: insertError } = await supabase.from("guests").insert({
+      wedding_id: weddingId,
+      guest_family_id: null,
+      guest_owner_id: ownerId,
+      full_name: individualName.trim(),
+      invited: true,
+      rsvp_status: rsvpStatus,
+      notes: notes.trim() || null,
+      age_group: "adult",
+      attendance_status: "pending",
+    });
 
     if (insertError) {
       console.error(insertError);
@@ -211,9 +209,7 @@ export default function AddGuestModal({
               }}
               className="rounded-xl border border-slate-200 p-6 text-left transition hover:border-slate-400 hover:bg-slate-50"
             >
-              <div className="text-lg font-semibold text-slate-900">
-                Family
-              </div>
+              <div className="text-lg font-semibold text-slate-900">Family</div>
               <p className="mt-2 text-sm leading-6 text-slate-500">
                 Add a family invitation using the family name and total number
                 of persons.

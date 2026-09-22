@@ -54,11 +54,7 @@ export default function NewHotelPage() {
       return;
     }
 
-    if (
-      checkInDate &&
-      checkOutDate &&
-      checkOutDate < checkInDate
-    ) {
+    if (checkInDate && checkOutDate && checkOutDate < checkInDate) {
       setError("Check-out date cannot be before check-in date.");
       return;
     }
@@ -148,9 +144,7 @@ export default function NewHotelPage() {
                 <input
                   type="text"
                   value={contactPerson}
-                  onChange={(event) =>
-                    setContactPerson(event.target.value)
-                  }
+                  onChange={(event) => setContactPerson(event.target.value)}
                   placeholder="e.g. Mr. Sharma"
                   className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
                 />
@@ -163,9 +157,7 @@ export default function NewHotelPage() {
                 <input
                   type="tel"
                   value={contactPhone}
-                  onChange={(event) =>
-                    setContactPhone(event.target.value)
-                  }
+                  onChange={(event) => setContactPhone(event.target.value)}
                   placeholder="Phone number"
                   className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm outline-none focus:border-slate-400 focus:ring-2 focus:ring-slate-100"
                 />

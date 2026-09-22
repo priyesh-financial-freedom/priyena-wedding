@@ -36,7 +36,7 @@ type FamilyMember = {
 export default function GuestsPage() {
   const [families, setFamilies] = useState<Family[]>([]);
   const [individualGuests, setIndividualGuests] = useState<IndividualGuest[]>(
-    []
+    [],
   );
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
   const [weddingId, setWeddingId] = useState<string | null>(null);
@@ -46,7 +46,7 @@ export default function GuestsPage() {
   const [editingIndividual, setEditingIndividual] =
     useState<IndividualGuest | null>(null);
   const [openIndividualMenu, setOpenIndividualMenu] = useState<string | null>(
-    null
+    null,
   );
 
   const [search, setSearch] = useState("");
@@ -100,7 +100,7 @@ export default function GuestsPage() {
       if (individualsResult.error) {
         console.error(
           "Error loading individual guests:",
-          individualsResult.error
+          individualsResult.error,
         );
       }
 
@@ -115,7 +115,7 @@ export default function GuestsPage() {
 
   async function deleteIndividualGuest(guest: IndividualGuest) {
     const confirmed = window.confirm(
-      `Delete ${guest.full_name}?\n\nThis will permanently remove this individual guest.`
+      `Delete ${guest.full_name}?\n\nThis will permanently remove this individual guest.`,
     );
 
     if (!confirmed) {
@@ -190,7 +190,7 @@ export default function GuestsPage() {
 
     return individualGuests.filter((guest) => {
       const ownerName = guest.guest_owner_id
-        ? ownerMap.get(guest.guest_owner_id) ?? ""
+        ? (ownerMap.get(guest.guest_owner_id) ?? "")
         : "";
 
       const matchesSearch =
@@ -228,9 +228,9 @@ export default function GuestsPage() {
     () =>
       filteredFamilies.reduce(
         (total, family) => total + (family.guest_count ?? 0),
-        0
+        0,
       ) + filteredIndividuals.length,
-    [filteredFamilies, filteredIndividuals]
+    [filteredFamilies, filteredIndividuals],
   );
 
   return (
@@ -277,7 +277,6 @@ export default function GuestsPage() {
               {totalPersons}
             </p>
           </div>
-
         </div>
 
         <div className="mb-6 rounded-xl bg-white p-4 shadow-sm">
@@ -418,7 +417,7 @@ export default function GuestsPage() {
                 <div className="space-y-4">
                   {filteredIndividuals.map((guest) => {
                     const ownerName = guest.guest_owner_id
-                      ? ownerMap.get(guest.guest_owner_id) ?? "Unassigned"
+                      ? (ownerMap.get(guest.guest_owner_id) ?? "Unassigned")
                       : "Unassigned";
 
                     return (
@@ -436,7 +435,6 @@ export default function GuestsPage() {
                               <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">
                                 Individual
                               </span>
-
                             </div>
 
                             <div className="mt-2 flex flex-wrap gap-x-5 gap-y-2 text-sm text-slate-500">
@@ -474,7 +472,7 @@ export default function GuestsPage() {
                                 setOpenIndividualMenu(
                                   openIndividualMenu === guest.id
                                     ? null
-                                    : guest.id
+                                    : guest.id,
                                 )
                               }
                               className="flex h-9 w-9 items-center justify-center rounded-lg text-lg font-bold text-slate-500 hover:bg-slate-100 hover:text-slate-800"
@@ -523,9 +521,7 @@ export default function GuestsPage() {
             {filteredFamilies.length === 0 &&
               filteredIndividuals.length === 0 && (
                 <div className="rounded-xl bg-white p-10 text-center shadow-sm">
-                  <p className="font-medium text-slate-700">
-                    No guests found
-                  </p>
+                  <p className="font-medium text-slate-700">No guests found</p>
                   <p className="mt-1 text-sm text-slate-500">
                     Try changing your search or filter.
                   </p>

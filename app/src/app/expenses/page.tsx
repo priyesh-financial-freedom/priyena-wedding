@@ -25,12 +25,16 @@ type Expense = {
   payment_date: string | null;
   notes: string | null;
   paid_by: string | null;
-  budget_items?: {
-    description: string;
-  }[] | null;
-  budget_categories?: {
-    name: string;
-  }[] | null;
+  budget_items?:
+    | {
+        description: string;
+      }[]
+    | null;
+  budget_categories?:
+    | {
+        name: string;
+      }[]
+    | null;
 };
 
 export default function ExpensesPage() {
@@ -101,7 +105,7 @@ export default function ExpensesPage() {
             paid_by,
             budget_items(description),
             budget_categories(name)
-          `
+          `,
         )
         .order("payment_date", { ascending: false })
         .order("created_at", { ascending: false }),
@@ -134,24 +138,16 @@ export default function ExpensesPage() {
 
   const totalExpenses = expenses.reduce(
     (sum, expense) => sum + Number(expense.payment_amount || 0),
-    0
+    0,
   );
 
   const budgetedExpenses = expenses
     .filter((expense) => expense.category_id || expense.budget_item_id)
-    .reduce(
-      (sum, expense) => sum + Number(expense.payment_amount || 0),
-      0
-    );
+    .reduce((sum, expense) => sum + Number(expense.payment_amount || 0), 0);
 
   const notBudgetedExpenses = expenses
-    .filter(
-      (expense) => !expense.category_id && !expense.budget_item_id
-    )
-    .reduce(
-      (sum, expense) => sum + Number(expense.payment_amount || 0),
-      0
-    );
+    .filter((expense) => !expense.category_id && !expense.budget_item_id)
+    .reduce((sum, expense) => sum + Number(expense.payment_amount || 0), 0);
 
   function resetForm() {
     setDate("");
@@ -201,10 +197,7 @@ export default function ExpensesPage() {
     const isNotPlanned = budgetItemId === "not-planned";
 
     const expenseData = {
-      budget_item_id:
-        !isNotBudgeted && !isNotPlanned
-          ? budgetItemId
-          : null,
+      budget_item_id: !isNotBudgeted && !isNotPlanned ? budgetItemId : null,
       category_id: isNotBudgeted ? null : categoryId,
       payment_amount: numericAmount,
       payment_date: date,
@@ -250,7 +243,7 @@ export default function ExpensesPage() {
     if (expense.budget_item_id) {
       setBudgetItemId(expense.budget_item_id);
       const selectedItem = budgetItems.find(
-        (item) => item.id === expense.budget_item_id
+        (item) => item.id === expense.budget_item_id,
       );
       setCategoryId(selectedItem?.category_id ?? expense.category_id ?? "");
     } else if (expense.category_id) {
@@ -288,9 +281,7 @@ export default function ExpensesPage() {
       <div className="mx-auto max-w-7xl">
         <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900">
-              Expenses
-            </h1>
+            <h1 className="text-3xl font-bold text-slate-900">Expenses</h1>
             <p className="mt-1 text-sm text-slate-500">
               Track money actually spent on the wedding.
             </p>
@@ -361,7 +352,7 @@ export default function ExpensesPage() {
                     }
 
                     const selectedItem = budgetItems.find(
-                      (item) => item.id === value
+                      (item) => item.id === value,
                     );
 
                     setCategoryId(selectedItem?.category_id ?? "");
@@ -371,7 +362,7 @@ export default function ExpensesPage() {
                   <option value="">Select budget item</option>
                   {budgetItems.map((item) => {
                     const category = categories.find(
-                      (category) => category.id === item.category_id
+                      (category) => category.id === item.category_id,
                     );
 
                     return (
@@ -430,7 +421,8 @@ export default function ExpensesPage() {
 
               <div className="sm:col-span-2">
                 <label className="mb-1 block text-sm font-medium text-slate-700">
-                  Notes <span className="font-normal text-slate-400">(optional)</span>
+                  Notes{" "}
+                  <span className="font-normal text-slate-400">(optional)</span>
                 </label>
                 <textarea
                   value={notes}
@@ -462,7 +454,11 @@ export default function ExpensesPage() {
                 disabled={saving}
                 className="rounded-xl bg-[#7f2935] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
               >
-                {saving ? "Saving..." : editingExpenseId ? "Save Changes" : "Save Expense"}
+                {saving
+                  ? "Saving..."
+                  : editingExpenseId
+                    ? "Save Changes"
+                    : "Save Expense"}
               </button>
             </div>
           </section>
@@ -499,9 +495,7 @@ export default function ExpensesPage() {
 
         <section className="mt-6 rounded-2xl border border-slate-200 bg-white shadow-sm">
           <div className="border-b border-slate-200 px-5 py-4">
-            <h2 className="font-semibold text-slate-900">
-              Expense History
-            </h2>
+            <h2 className="font-semibold text-slate-900">Expense History</h2>
           </div>
 
           {loading ? (
@@ -518,11 +512,11 @@ export default function ExpensesPage() {
                 const category =
                   expense.category_id === "not-budgeted"
                     ? "Not Budgeted"
-                    : categories.find(
-                        (category) => category.id === expense.category_id
+                    : (categories.find(
+                        (category) => category.id === expense.category_id,
                       )?.name ??
                       expense.budget_categories?.[0]?.name ??
-                      (expense.category_id ? "Category" : "Not Budgeted");
+                      (expense.category_id ? "Category" : "Not Budgeted"));
 
                 const item =
                   expense.budget_items?.[0]?.description ??
@@ -541,13 +535,15 @@ export default function ExpensesPage() {
                         {expense.payment_date
                           ? formatDate(expense.payment_date)
                           : "No date"}{" "}
-                        · {category} · {item} · Paid By: {expense.paid_by || "—"}
+                        · {category} · {item} · Paid By:{" "}
+                        {expense.paid_by || "—"}
                       </p>
                     </div>
 
                     <div className="flex items-center justify-between gap-4 sm:justify-end">
                       <span className="font-semibold text-slate-900">
-                        ₹{Number(expense.payment_amount).toLocaleString("en-IN")}
+                        ₹
+                        {Number(expense.payment_amount).toLocaleString("en-IN")}
                       </span>
                       <button
                         type="button"

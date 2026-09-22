@@ -78,9 +78,7 @@ export default function EditIndividualGuestModal({
             <h2 className="text-xl font-semibold text-slate-900">
               Edit Individual Guest
             </h2>
-            <p className="mt-1 text-sm text-slate-500">
-              Update guest details
-            </p>
+            <p className="mt-1 text-sm text-slate-500">Update guest details</p>
           </div>
 
           <button

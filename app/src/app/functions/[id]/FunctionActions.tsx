@@ -26,17 +26,17 @@ export default function FunctionActions({
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(functionData.name);
   const [functionDate, setFunctionDate] = useState(
-    functionData.function_date ?? ""
+    functionData.function_date ?? "",
   );
   const [venue, setVenue] = useState(functionData.venue ?? "");
   const [startTime, setStartTime] = useState(
-    functionData.start_time?.slice(0, 5) ?? ""
+    functionData.start_time?.slice(0, 5) ?? "",
   );
   const [endTime, setEndTime] = useState(
-    functionData.end_time?.slice(0, 5) ?? ""
+    functionData.end_time?.slice(0, 5) ?? "",
   );
   const [sequenceNumber, setSequenceNumber] = useState(
-    functionData.sequence_number?.toString() ?? ""
+    functionData.sequence_number?.toString() ?? "",
   );
 
   const [saving, setSaving] = useState(false);
@@ -61,9 +61,7 @@ export default function FunctionActions({
         venue: venue.trim() || null,
         start_time: startTime || null,
         end_time: endTime || null,
-        sequence_number: sequenceNumber
-          ? Number(sequenceNumber)
-          : null,
+        sequence_number: sequenceNumber ? Number(sequenceNumber) : null,
       })
       .eq("id", functionData.id);
 
@@ -81,7 +79,7 @@ export default function FunctionActions({
 
   async function handleDelete() {
     const confirmed = window.confirm(
-      `Delete "${functionData.name}"?\n\nThis will also remove attendance records for this function. This action cannot be undone.`
+      `Delete "${functionData.name}"?\n\nThis will also remove attendance records for this function. This action cannot be undone.`,
     );
 
     if (!confirmed) {
@@ -109,9 +107,7 @@ export default function FunctionActions({
   if (editing) {
     return (
       <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-5">
-        <h2 className="text-lg font-semibold text-slate-900">
-          Edit Function
-        </h2>
+        <h2 className="text-lg font-semibold text-slate-900">Edit Function</h2>
 
         <div className="mt-4 space-y-4">
           <div>
@@ -127,9 +123,7 @@ export default function FunctionActions({
           </div>
 
           <div>
-            <label className="text-sm font-medium text-slate-700">
-              Date
-            </label>
+            <label className="text-sm font-medium text-slate-700">Date</label>
 
             <DateInput
               value={functionDate}
@@ -139,9 +133,7 @@ export default function FunctionActions({
           </div>
 
           <div>
-            <label className="text-sm font-medium text-slate-700">
-              Venue
-            </label>
+            <label className="text-sm font-medium text-slate-700">Venue</label>
 
             <input
               value={venue}

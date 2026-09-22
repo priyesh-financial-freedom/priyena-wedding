@@ -26,7 +26,7 @@ export default async function FunctionsPage() {
   const { data: functions, error } = await supabase
     .from("functions")
     .select(
-      "id, name, function_date, venue, start_time, end_time, sequence_number, wedding_id"
+      "id, name, function_date, venue, start_time, end_time, sequence_number, wedding_id",
     )
     .order("sequence_number");
 
@@ -37,11 +37,7 @@ export default async function FunctionsPage() {
   const functionList = functions ?? [];
 
   const weddingIds = [
-    ...new Set(
-      functionList
-        .map((fn) => fn.wedding_id)
-        .filter(Boolean)
-    ),
+    ...new Set(functionList.map((fn) => fn.wedding_id).filter(Boolean)),
   ];
 
   let families: Family[] = [];
@@ -53,10 +49,7 @@ export default async function FunctionsPage() {
       .in("wedding_id", weddingIds);
 
     if (familyError) {
-      console.error(
-        "Function dashboard families query failed:",
-        familyError
-      );
+      console.error("Function dashboard families query failed:", familyError);
     } else {
       families = data ?? [];
     }
@@ -65,10 +58,7 @@ export default async function FunctionsPage() {
   const familyCountMap = new Map<string, number>();
 
   families.forEach((family) => {
-    familyCountMap.set(
-      family.id,
-      family.guest_count ?? 0
-    );
+    familyCountMap.set(family.id, family.guest_count ?? 0);
   });
 
   const functionIds = functionList.map((fn) => fn.id);
@@ -81,37 +71,31 @@ export default async function FunctionsPage() {
       await Promise.all([
         supabase
           .from("family_function_attendance")
-          .select(
-            "function_id, guest_family_id, attendance_status"
-          )
+          .select("function_id, guest_family_id, attendance_status")
           .in("function_id", functionIds),
 
         supabase
           .from("guest_function_attendance")
-          .select(
-            "function_id, guest_id, attendance_status"
-          )
+          .select("function_id, guest_id, attendance_status")
           .in("function_id", functionIds),
       ]);
 
     if (familyAttendanceResult.error) {
       console.error(
         "Family attendance query failed:",
-        familyAttendanceResult.error
+        familyAttendanceResult.error,
       );
     } else {
-      familyAttendance =
-        familyAttendanceResult.data ?? [];
+      familyAttendance = familyAttendanceResult.data ?? [];
     }
 
     if (individualAttendanceResult.error) {
       console.error(
         "Individual attendance query failed:",
-        individualAttendanceResult.error
+        individualAttendanceResult.error,
       );
     } else {
-      individualAttendance =
-        individualAttendanceResult.data ?? [];
+      individualAttendance = individualAttendanceResult.data ?? [];
     }
   }
 
@@ -121,64 +105,45 @@ export default async function FunctionsPage() {
   >();
 
   for (const record of familyAttendance) {
-    const current =
-      attendanceByFunction.get(record.function_id) ?? {
-        attending: 0,
-        records: 0,
-      };
+    const current = attendanceByFunction.get(record.function_id) ?? {
+      attending: 0,
+      records: 0,
+    };
 
     current.records += 1;
 
-    if (
-      record.attendance_status?.toLowerCase() ===
-      "attending"
-    ) {
-      current.attending +=
-        familyCountMap.get(record.guest_family_id) ?? 0;
+    if (record.attendance_status?.toLowerCase() === "attending") {
+      current.attending += familyCountMap.get(record.guest_family_id) ?? 0;
     }
 
-    if (
-      record.attendance_status?.toLowerCase() ===
-      "checked_in"
-    ) {
-      current.attending +=
-        familyCountMap.get(record.guest_family_id) ?? 0;
+    if (record.attendance_status?.toLowerCase() === "checked_in") {
+      current.attending += familyCountMap.get(record.guest_family_id) ?? 0;
     }
 
-    attendanceByFunction.set(
-      record.function_id,
-      current
-    );
+    attendanceByFunction.set(record.function_id, current);
   }
 
   for (const record of individualAttendance) {
-    const current =
-      attendanceByFunction.get(record.function_id) ?? {
-        attending: 0,
-        records: 0,
-      };
+    const current = attendanceByFunction.get(record.function_id) ?? {
+      attending: 0,
+      records: 0,
+    };
 
     current.records += 1;
 
     if (
-      record.attendance_status?.toLowerCase() ===
-        "attending" ||
-      record.attendance_status?.toLowerCase() ===
-        "checked_in"
+      record.attendance_status?.toLowerCase() === "attending" ||
+      record.attendance_status?.toLowerCase() === "checked_in"
     ) {
       current.attending += 1;
     }
 
-    attendanceByFunction.set(
-      record.function_id,
-      current
-    );
+    attendanceByFunction.set(record.function_id, current);
   }
 
   return (
     <main className="min-h-screen bg-slate-50 p-6">
       <div className="mx-auto max-w-7xl">
-
         <div className="mb-6">
           <Link
             href="/"
@@ -190,13 +155,9 @@ export default async function FunctionsPage() {
 
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-4xl font-bold">
-              Wedding Functions
-            </h1>
+            <h1 className="text-4xl font-bold">Wedding Functions</h1>
 
-            <p className="mt-2 text-slate-600">
-              Priyena Wedding Planner
-            </p>
+            <p className="mt-2 text-slate-600">Priyena Wedding Planner</p>
           </div>
 
           <AddFunctionModal />
@@ -204,11 +165,10 @@ export default async function FunctionsPage() {
 
         <div className="mt-8 grid gap-4 md:grid-cols-2">
           {functionList.map((fn) => {
-            const stats =
-              attendanceByFunction.get(fn.id) ?? {
-                attending: 0,
-                records: 0,
-              };
+            const stats = attendanceByFunction.get(fn.id) ?? {
+              attending: 0,
+              records: 0,
+            };
 
             return (
               <Link
@@ -218,28 +178,23 @@ export default async function FunctionsPage() {
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <h2 className="text-2xl font-semibold">
-                      {fn.name}
-                    </h2>
+                    <h2 className="text-2xl font-semibold">{fn.name}</h2>
 
                     <div className="mt-2 space-y-1 text-sm text-slate-600">
                       <div>
                         Date:{" "}
-                        {fn.function_date ? formatDate(fn.function_date) : "Not set"}
+                        {fn.function_date
+                          ? formatDate(fn.function_date)
+                          : "Not set"}
                       </div>
 
-                      <div>
-                        Venue:{" "}
-                        {fn.venue || "Not set"}
-                      </div>
+                      <div>Venue: {fn.venue || "Not set"}</div>
 
                       <div>
                         Time:{" "}
                         {fn.start_time
                           ? `${fn.start_time}${
-                              fn.end_time
-                                ? ` – ${fn.end_time}`
-                                : ""
+                              fn.end_time ? ` – ${fn.end_time}` : ""
                             }`
                           : "Not set"}
                       </div>
@@ -247,13 +202,9 @@ export default async function FunctionsPage() {
                   </div>
 
                   <div className="rounded-lg bg-slate-100 px-4 py-3 text-center">
-                    <div className="text-2xl font-bold">
-                      {stats.attending}
-                    </div>
+                    <div className="text-2xl font-bold">{stats.attending}</div>
 
-                    <div className="text-xs text-slate-500">
-                      attending
-                    </div>
+                    <div className="text-xs text-slate-500">attending</div>
                   </div>
                 </div>
 
@@ -270,7 +221,6 @@ export default async function FunctionsPage() {
             No wedding functions found.
           </div>
         )}
-
       </div>
     </main>
   );

@@ -73,29 +73,25 @@ export default function FunctionAttendanceActions({
   familyAttendance.forEach((item) => {
     initialStatuses.set(
       `family:${item.guest_family_id}`,
-      item.attendance_status || "pending"
+      item.attendance_status || "pending",
     );
   });
 
   individualAttendance.forEach((item) => {
     initialStatuses.set(
       `individual:${item.guest_id}`,
-      item.attendance_status || "pending"
+      item.attendance_status || "pending",
     );
   });
 
   const [statuses, setStatuses] =
     useState<Map<string, string>>(initialStatuses);
 
-  const [savingUnit, setSavingUnit] =
-    useState<string | null>(null);
+  const [savingUnit, setSavingUnit] = useState<string | null>(null);
 
   const [error, setError] = useState("");
 
-  async function updateFamilyAttendance(
-    familyId: string,
-    status: string
-  ) {
+  async function updateFamilyAttendance(familyId: string, status: string) {
     const key = `family:${familyId}`;
 
     setSavingUnit(key);
@@ -109,10 +105,7 @@ export default function FunctionAttendanceActions({
         .eq("function_id", functionId);
 
       if (deleteError) {
-        console.error(
-          "Family attendance reset failed:",
-          deleteError
-        );
+        console.error("Family attendance reset failed:", deleteError);
         setError("Unable to update family attendance.");
         setSavingUnit(null);
         return;
@@ -125,9 +118,7 @@ export default function FunctionAttendanceActions({
       });
     } else {
       const checkedInAt =
-        status === "checked_in"
-          ? new Date().toISOString()
-          : null;
+        status === "checked_in" ? new Date().toISOString() : null;
 
       const { error: upsertError } = await supabase
         .from("family_function_attendance")
@@ -140,7 +131,7 @@ export default function FunctionAttendanceActions({
           },
           {
             onConflict: "guest_family_id,function_id",
-          }
+          },
         );
 
       if (upsertError) {
@@ -154,7 +145,7 @@ export default function FunctionAttendanceActions({
         setError(
           `Unable to update family attendance: ${
             upsertError.message || "Unknown database error"
-          }`
+          }`,
         );
         setSavingUnit(null);
         return;
@@ -171,10 +162,7 @@ export default function FunctionAttendanceActions({
     router.refresh();
   }
 
-  async function updateIndividualAttendance(
-    guestId: string,
-    status: string
-  ) {
+  async function updateIndividualAttendance(guestId: string, status: string) {
     const key = `individual:${guestId}`;
 
     setSavingUnit(key);
@@ -188,10 +176,7 @@ export default function FunctionAttendanceActions({
         .eq("function_id", functionId);
 
       if (deleteError) {
-        console.error(
-          "Individual attendance reset failed:",
-          deleteError
-        );
+        console.error("Individual attendance reset failed:", deleteError);
         setError("Unable to update guest attendance.");
         setSavingUnit(null);
         return;
@@ -204,9 +189,7 @@ export default function FunctionAttendanceActions({
       });
     } else {
       const checkedInAt =
-        status === "checked_in"
-          ? new Date().toISOString()
-          : null;
+        status === "checked_in" ? new Date().toISOString() : null;
 
       const { error: upsertError } = await supabase
         .from("guest_function_attendance")
@@ -219,14 +202,11 @@ export default function FunctionAttendanceActions({
           },
           {
             onConflict: "guest_id,function_id",
-          }
+          },
         );
 
       if (upsertError) {
-        console.error(
-          "Individual attendance update failed:",
-          upsertError
-        );
+        console.error("Individual attendance update failed:", upsertError);
         setError("Unable to update guest attendance.");
         setSavingUnit(null);
         return;
@@ -282,9 +262,7 @@ export default function FunctionAttendanceActions({
         ))}
 
         {saving && (
-          <span className="ml-1 text-xs text-slate-500">
-            Saving...
-          </span>
+          <span className="ml-1 text-xs text-slate-500">Saving...</span>
         )}
       </div>
     );
@@ -302,9 +280,7 @@ export default function FunctionAttendanceActions({
       <section>
         <div className="mb-3 flex items-center justify-between border-b pb-2">
           <div>
-            <h3 className="text-lg font-semibold">
-              Family Invitations
-            </h3>
+            <h3 className="text-lg font-semibold">Family Invitations</h3>
 
             <p className="text-sm text-slate-500">
               Attendance is recorded for the family as one invitation unit.
@@ -316,8 +292,7 @@ export default function FunctionAttendanceActions({
           {families.map((family) => {
             const key = `family:${family.id}`;
 
-            const status =
-              statuses.get(key) || "pending";
+            const status = statuses.get(key) || "pending";
 
             const saving = savingUnit === key;
 
@@ -340,18 +315,14 @@ export default function FunctionAttendanceActions({
                   </div>
 
                   <div className="mt-1 text-sm text-slate-500">
-                    Head:{" "}
-                    {family.primary_contact_name ||
-                      "Not specified"}
+                    Head: {family.primary_contact_name || "Not specified"}
                   </div>
 
                   <div className="mt-1 text-sm text-slate-500">
                     <strong className="text-slate-700">
                       {family.guest_count}
                     </strong>{" "}
-                    {family.guest_count === 1
-                      ? "person"
-                      : "persons"}
+                    {family.guest_count === 1 ? "person" : "persons"}
                     {" · "}
                     RSVP:{" "}
                     <span className="capitalize">
@@ -364,10 +335,7 @@ export default function FunctionAttendanceActions({
                   status={status}
                   saving={saving}
                   onUpdate={(nextStatus) =>
-                    updateFamilyAttendance(
-                      family.id,
-                      nextStatus
-                    )
+                    updateFamilyAttendance(family.id, nextStatus)
                   }
                 />
               </div>
@@ -386,9 +354,7 @@ export default function FunctionAttendanceActions({
       <section className="mt-10">
         <div className="mb-3 flex items-center justify-between border-b pb-2">
           <div>
-            <h3 className="text-lg font-semibold">
-              Direct Guests
-            </h3>
+            <h3 className="text-lg font-semibold">Direct Guests</h3>
 
             <p className="text-sm text-slate-500">
               Guests who are not part of a family group.
@@ -400,8 +366,7 @@ export default function FunctionAttendanceActions({
           {individuals.map((guest) => {
             const key = `individual:${guest.id}`;
 
-            const status =
-              statuses.get(key) || "pending";
+            const status = statuses.get(key) || "pending";
 
             const saving = savingUnit === key;
 
@@ -439,10 +404,7 @@ export default function FunctionAttendanceActions({
                   status={status}
                   saving={saving}
                   onUpdate={(nextStatus) =>
-                    updateIndividualAttendance(
-                      guest.id,
-                      nextStatus
-                    )
+                    updateIndividualAttendance(guest.id, nextStatus)
                   }
                 />
               </div>

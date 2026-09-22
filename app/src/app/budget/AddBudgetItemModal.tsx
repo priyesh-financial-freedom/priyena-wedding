@@ -39,33 +39,27 @@ export default function AddBudgetItemModal({
 
   const [isOpen, setIsOpen] = useState(Boolean(item));
 
-  const [eventId, setEventId] = useState(
-    item?.event_id ?? events[0]?.id ?? ""
-  );
+  const [eventId, setEventId] = useState(item?.event_id ?? events[0]?.id ?? "");
 
   const [categoryId, setCategoryId] = useState(
-    item?.category_id ?? categories[0]?.id ?? ""
+    item?.category_id ?? categories[0]?.id ?? "",
   );
 
-  const [description, setDescription] = useState(
-    item?.description ?? ""
-  );
+  const [description, setDescription] = useState(item?.description ?? "");
 
   const [budgetAmount, setBudgetAmount] = useState(
-    item?.budget_amount != null ? String(item.budget_amount) : ""
+    item?.budget_amount != null ? String(item.budget_amount) : "",
   );
 
   const [quotedAmount, setQuotedAmount] = useState(
-    item?.quoted_amount != null ? String(item.quoted_amount) : ""
+    item?.quoted_amount != null ? String(item.quoted_amount) : "",
   );
 
   const [paidAmount, setPaidAmount] = useState(
-    item?.paid_amount != null ? String(item.paid_amount) : ""
+    item?.paid_amount != null ? String(item.paid_amount) : "",
   );
 
-  const [vendorName, setVendorName] = useState(
-    item?.vendor_name ?? ""
-  );
+  const [vendorName, setVendorName] = useState(item?.vendor_name ?? "");
 
   const [notes, setNotes] = useState(item?.notes ?? "");
 
@@ -102,12 +96,7 @@ export default function AddBudgetItemModal({
 
     setError("");
 
-    if (
-      !eventId ||
-      !categoryId ||
-      !description.trim() ||
-      budgetAmount === ""
-    ) {
+    if (!eventId || !categoryId || !description.trim() || budgetAmount === "") {
       setError("Please complete all required fields.");
       return;
     }
@@ -177,9 +166,7 @@ export default function AddBudgetItemModal({
           });
 
         if (insertError) {
-          throw new Error(
-            insertError.message || "Unable to save budget item."
-          );
+          throw new Error(insertError.message || "Unable to save budget item.");
         }
       }
 
@@ -269,7 +256,6 @@ export default function AddBudgetItemModal({
           className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
         >
           <div className="space-y-6 px-5 py-6 sm:px-7 sm:py-7">
-
             {/* EVENT + CATEGORY */}
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
               <div>

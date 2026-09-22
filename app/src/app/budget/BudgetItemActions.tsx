@@ -28,18 +28,14 @@ type Props = {
   categories: MasterOption[];
 };
 
-export default function BudgetItemActions({
-  item,
-  events,
-  categories,
-}: Props) {
+export default function BudgetItemActions({ item, events, categories }: Props) {
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   async function handleDelete() {
     const confirmed = window.confirm(
-      `Delete "${item.description}" from the budget? This cannot be undone.`
+      `Delete "${item.description}" from the budget? This cannot be undone.`,
     );
 
     if (!confirmed) return;

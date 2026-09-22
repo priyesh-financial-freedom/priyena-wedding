@@ -33,7 +33,7 @@ export default function AddBudgetMasterModal({ type }: Props) {
       setError(
         isEvent
           ? "Please enter an event name."
-          : "Please enter a category name."
+          : "Please enter a category name.",
       );
       return;
     }
@@ -85,7 +85,7 @@ export default function AddBudgetMasterModal({ type }: Props) {
         setError(
           isEvent
             ? "An event with this name already exists."
-            : "A category with this name already exists."
+            : "A category with this name already exists.",
         );
       } else {
         setError(insertError.message);
@@ -150,11 +150,7 @@ export default function AddBudgetMasterModal({ type }: Props) {
                       handleSave();
                     }
                   }}
-                  placeholder={
-                    isEvent
-                      ? "e.g. Mehendi"
-                      : "e.g. Jewellery"
-                  }
+                  placeholder={isEvent ? "e.g. Mehendi" : "e.g. Jewellery"}
                   className="mt-1 w-full rounded-lg border border-slate-300 px-4 py-3 text-sm outline-none focus:border-slate-500"
                 />
               </label>
@@ -181,7 +177,9 @@ export default function AddBudgetMasterModal({ type }: Props) {
                 disabled={saving}
                 className="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                {saving ? "Saving..." : `Save ${isEvent ? "Event" : "Category"}`}
+                {saving
+                  ? "Saving..."
+                  : `Save ${isEvent ? "Event" : "Category"}`}
               </button>
             </div>
           </div>

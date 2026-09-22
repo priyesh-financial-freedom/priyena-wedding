@@ -16,8 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Priyena Wedding Planner",
-  description:
-    "Priyena Wedding Planner — Priyena weds Khushal, 25 January 2027",
+  description: "Priyena Wedding Planner — Priyena weds Khushal, 25 January 2027",
 };
 
 export default function RootLayout({
@@ -33,7 +32,11 @@ export default function RootLayout({
       <body className="min-h-full overflow-x-hidden bg-[#fffaf5]">
         <header className="sticky top-0 z-40 border-b border-[#eadfd5] bg-white/95 backdrop-blur">
           <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-4">
-            <Link href="/" className="flex min-w-0 items-center gap-2.5">
+
+            <Link
+              href="/"
+              className="flex min-w-0 items-center gap-2.5"
+            >
               <span className="relative h-9 w-9 shrink-0">
                 <Image
                   src="/ganesha-logo.svg"
@@ -90,17 +93,13 @@ export default function RootLayout({
               >
                 Accommodation
               </Link>
-              <Link
-                href="/gifts/planning"
-                className="transition-colors hover:text-[#8d3144]"
-              >
-                Gifts
-              </Link>
             </nav>
           </div>
         </header>
 
-        <div className="min-w-0 flex-1">{children}</div>
+        <div className="min-w-0 flex-1">
+          {children}
+        </div>
       </body>
     </html>
   );
