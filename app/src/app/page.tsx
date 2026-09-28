@@ -81,7 +81,7 @@ export default async function HomePage() {
 
     supabase
       .from("budget_items")
-      .select("budget_amount, quoted_amount, paid_amount")
+      .select("budget_amount, paid_amount")
       .eq("wedding_id", wedding.id),
 
     supabase
@@ -124,11 +124,6 @@ export default async function HomePage() {
 
   const totalBudget = budgetList.reduce(
     (sum, item) => sum + Number(item.budget_amount || 0),
-    0,
-  );
-
-  const totalQuoted = budgetList.reduce(
-    (sum, item) => sum + Number(item.quoted_amount || 0),
     0,
   );
 
@@ -295,18 +290,11 @@ export default async function HomePage() {
             </Link>
           </div>
 
-          <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div className="rounded-xl bg-[#fff8ed] p-4">
               <p className="text-xs text-slate-500">Total Budgeted</p>
               <p className="mt-2 text-xl font-bold sm:text-2xl">
                 {formatCurrency(totalBudget)}
-              </p>
-            </div>
-
-            <div className="rounded-xl bg-[#f7f4fb] p-4">
-              <p className="text-xs text-slate-500">Total Quoted</p>
-              <p className="mt-2 text-xl font-bold sm:text-2xl">
-                {formatCurrency(totalQuoted)}
               </p>
             </div>
 
