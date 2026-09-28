@@ -100,8 +100,6 @@ export default function DateInput({
 
     if (typeof picker.showPicker === "function") {
       picker.showPicker();
-    } else {
-      picker.click();
     }
   }
 
@@ -155,9 +153,9 @@ export default function DateInput({
         min={min}
         onChange={(event) => handlePickerChange(event.target.value)}
         disabled={disabled}
-        aria-hidden="true"
+        aria-label="Choose date"
         tabIndex={-1}
-        className="pointer-events-none absolute left-0 top-0 h-0 w-0 opacity-0"
+        className="absolute right-1 top-1/2 z-20 h-9 w-9 -translate-y-1/2 cursor-pointer opacity-0"
       />
     </div>
   );
