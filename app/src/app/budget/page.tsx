@@ -147,6 +147,14 @@ export default async function BudgetPage() {
 
   const totalBalance = totalBudget - totalPaid;
 
+  // Category-level "Not Planned" expenses have no event_id.
+  // Keep them visible in the event section so the event paid total
+  // reconciles with the overall Budget Paid figure.
+  const unplannedPaid = paymentData.reduce((sum, payment) => {
+    if (payment.budget_item_id || !payment.category_id) return sum;
+    return sum + Number(payment.payment_amount || 0);
+  }, 0);
+
   const eventSummary = eventOptions
     .map((event) => {
       const matching = items.filter((item) => item.event_id === event.id);
@@ -177,6 +185,21 @@ export default async function BudgetPage() {
     .filter(
       (event) => event.budget !== 0 || event.quoted !== 0 || event.paid !== 0,
     );
+
+  const eventRows = unplannedPaid > 0
+    ? [
+        ...eventSummary,
+        {
+          id: "unplanned-expenses",
+          name: "Unplanned / No Event",
+          budget: 0,
+          quoted: 0,
+          paid: unplannedPaid,
+          balance: 0,
+          isUnplanned: true,
+        },
+      ]
+    : eventSummary.map((event) => ({ ...event, isUnplanned: false }));
 
   const categorySummary = categoryOptions
     .map((category) => {
@@ -275,7 +298,7 @@ export default async function BudgetPage() {
               Budget by Event
             </h2>
             <p className="mt-2 text-base text-slate-600">
-              Add an event whenever your wedding plan requires one.
+              Paid includes budget items plus category-level unplanned expenses shown separately below.
             </p>
           </div>
 
@@ -284,26 +307,26 @@ export default async function BudgetPage() {
 
         {/* MOBILE */}
         <div className="divide-y md:hidden">
-          {eventSummary.map((event) => (
+          {eventRows.map((event) => (
             <div key={event.id} className="p-6">
               <div className="flex items-start justify-between gap-4">
                 <p className="text-xl font-bold text-slate-900">{event.name}</p>
 
-                <BudgetEventActions event={event} />
+                {!event.isUnplanned && <BudgetEventActions event={event} />}
               </div>
 
               <div className="mt-5 grid grid-cols-2 gap-5">
                 <div>
                   <p className="text-sm font-medium text-slate-600">Budgeted</p>
                   <p className="mt-1 text-lg font-bold text-slate-900">
-                    {formatCurrency(event.budget)}
+                    {event.isUnplanned ? "—" : formatCurrency(event.budget)}
                   </p>
                 </div>
 
                 <div>
                   <p className="text-sm font-medium text-slate-600">Quoted</p>
                   <p className="mt-1 text-lg font-bold text-slate-900">
-                    {formatCurrency(event.quoted)}
+                    {event.isUnplanned ? "—" : formatCurrency(event.quoted)}
                   </p>
                 </div>
 
@@ -317,7 +340,7 @@ export default async function BudgetPage() {
                 <div>
                   <p className="text-sm font-medium text-slate-600">Balance</p>
                   <p className="mt-1 text-lg font-bold text-slate-900">
-                    {formatCurrency(event.balance)}
+                    {event.isUnplanned ? "—" : formatCurrency(event.balance)}
                   </p>
                 </div>
               </div>
@@ -473,7 +496,7 @@ export default async function BudgetPage() {
             <thead className="bg-slate-50 text-left text-slate-600">
               <tr>
                 <th className="px-6 py-3 font-medium">Category</th>
-                <th className="px-6 py-3 text-center font-medium">Items</th>
+                <th className="px-6 py-3 text-center font-medium">Budget Items</th>
                 <th className="px-6 py-3 text-right font-medium">Budgeted</th>
                 <th className="px-6 py-3 text-right font-medium">Quoted</th>
                 <th className="px-6 py-3 text-right font-medium">Paid</th>
