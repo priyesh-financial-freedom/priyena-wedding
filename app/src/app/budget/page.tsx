@@ -4,7 +4,6 @@ import { supabase } from "@/lib/supabase";
 import AddBudgetItemModal from "./AddBudgetItemModal";
 import AddBudgetMasterModal from "./AddBudgetMasterModal";
 import BudgetItemActions from "./BudgetItemActions";
-import BudgetCategoryActions from "./BudgetCategoryActions";
 import BudgetEventActions from "./BudgetEventActions";
 import SourceOfFunds from "./SourceOfFunds";
 
@@ -228,10 +227,13 @@ export default async function BudgetPage() {
           </p>
         </div>
 
-        <AddBudgetItemModal
-          events={eventOptions}
-          categories={categoryOptions}
-        />
+        <div className="flex flex-wrap items-center gap-2">
+          <AddBudgetMasterModal type="category" />
+          <AddBudgetItemModal
+            events={eventOptions}
+            categories={categoryOptions}
+          />
+        </div>
       </div>
 
       {/* KPI CARDS */}
@@ -382,105 +384,6 @@ export default async function BudgetPage() {
                 </td>
               </tr>
             </tfoot>
-          </table>
-        </div>
-      </section>
-
-      {/* BUDGET BY CATEGORY */}
-      <section className="mt-6 overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-sm">
-        <div className="flex flex-col gap-4 border-b px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-          <div>
-            <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">
-              Budget by Category
-            </h2>
-            <p className="mt-2 text-base text-slate-600">
-              Keep categories broad and add your own when needed.
-            </p>
-          </div>
-
-          <AddBudgetMasterModal type="category" />
-        </div>
-
-        {/* MOBILE */}
-        <div className="divide-y md:hidden">
-          {categorySummary.map((category) => (
-            <div key={category.id} className="p-6">
-              <div className="flex items-start justify-between gap-4">
-                <p className="text-xl font-bold text-slate-900">
-                  {category.name}
-                </p>
-
-                <BudgetCategoryActions category={category} />
-              </div>
-
-              <div className="mt-5 grid grid-cols-2 gap-5">
-                <div>
-                  <p className="text-sm font-medium text-slate-600">Budgeted</p>
-                  <p className="mt-1 text-lg font-bold text-slate-900">
-                    {formatCurrency(category.budget)}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-sm font-medium text-slate-600">Paid</p>
-                  <p className="mt-1 text-lg font-bold text-slate-900">
-                    {formatCurrency(category.paid)}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-sm font-medium text-slate-600">Balance</p>
-                  <p className="mt-1 text-lg font-bold text-slate-900">
-                    {formatCurrency(category.balance)}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* DESKTOP */}
-        <div className="hidden overflow-x-auto md:block">
-          <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-left text-slate-600">
-              <tr>
-                <th className="px-6 py-3 font-medium">Category</th>
-                <th className="px-6 py-3 text-center font-medium">Budget Items</th>
-                <th className="px-6 py-3 text-right font-medium">Budgeted</th>
-                <th className="px-6 py-3 text-right font-medium">Paid</th>
-                <th className="px-6 py-3 text-right font-medium">Balance</th>
-                <th className="px-6 py-3 text-right font-medium">Actions</th>
-              </tr>
-            </thead>
-
-            <tbody className="divide-y">
-              {categorySummary.map((category) => (
-                <tr key={category.id}>
-                  <td className="px-6 py-4 font-medium">{category.name}</td>
-
-                  <td className="px-6 py-4 text-center">
-                    <span className="rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-800">
-                      {category.itemCount}
-                    </span>
-                  </td>
-
-                  <td className="px-6 py-4 text-right">
-                    {formatCurrency(category.budget)}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    {formatCurrency(category.paid)}
-                  </td>
-                  <td className="px-6 py-4 text-right font-medium">
-                    {formatCurrency(category.balance)}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex justify-end">
-                      <BudgetCategoryActions category={category} />
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
           </table>
         </div>
       </section>
