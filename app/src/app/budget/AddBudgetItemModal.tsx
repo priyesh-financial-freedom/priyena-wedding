@@ -16,7 +16,6 @@ type BudgetItem = {
   description: string;
   budget_amount: number;
   quoted_amount: number;
-  paid_amount: number;
   vendor_name: string | null;
   notes: string | null;
 };
@@ -55,10 +54,6 @@ export default function AddBudgetItemModal({
     item?.quoted_amount != null ? String(item.quoted_amount) : "",
   );
 
-  const [paidAmount, setPaidAmount] = useState(
-    item?.paid_amount != null ? String(item.paid_amount) : "",
-  );
-
   const [vendorName, setVendorName] = useState(item?.vendor_name ?? "");
 
   const [notes, setNotes] = useState(item?.notes ?? "");
@@ -75,7 +70,6 @@ export default function AddBudgetItemModal({
     setDescription(item.description);
     setBudgetAmount(String(item.budget_amount ?? ""));
     setQuotedAmount(String(item.quoted_amount ?? ""));
-    setPaidAmount(String(item.paid_amount ?? ""));
     setVendorName(item.vendor_name ?? "");
     setNotes(item.notes ?? "");
   }, [item]);
@@ -103,18 +97,13 @@ export default function AddBudgetItemModal({
 
     const budget = Number(budgetAmount);
     const quoted = Number(quotedAmount || 0);
-    const paid = Number(paidAmount || 0);
 
-    if (
-      !Number.isFinite(budget) ||
-      !Number.isFinite(quoted) ||
-      !Number.isFinite(paid)
-    ) {
+    if (!Number.isFinite(budget) || !Number.isFinite(quoted)) {
       setError("Please enter valid amounts.");
       return;
     }
 
-    if (budget < 0 || quoted < 0 || paid < 0) {
+    if (budget < 0 || quoted < 0) {
       setError("Amounts cannot be negative.");
       return;
     }
@@ -141,7 +130,6 @@ export default function AddBudgetItemModal({
             description: description.trim(),
             budget_amount: budget,
             quoted_amount: quoted,
-            paid_amount: paid,
             vendor_name: vendorName.trim() || null,
             notes: notes.trim() || null,
           })
@@ -160,7 +148,6 @@ export default function AddBudgetItemModal({
             description: description.trim(),
             budget_amount: budget,
             quoted_amount: quoted,
-            paid_amount: paid,
             vendor_name: vendorName.trim() || null,
             notes: notes.trim() || null,
           });
@@ -234,7 +221,7 @@ export default function AddBudgetItemModal({
 
             <p className="mt-1 text-sm text-slate-500 sm:text-base">
               {isEditing
-                ? "Update the budget, quote or payment details."
+                ? "Update the budget and quote details. Paid amounts are recorded in Expenses."
                 : "Add a lump-sum package or an individual expense."}
             </p>
           </div>
@@ -310,7 +297,7 @@ export default function AddBudgetItemModal({
             </div>
 
             {/* AMOUNTS */}
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
               <div>
                 <label className="mb-2 block text-sm font-medium text-slate-800">
                   Budgeted Amount *
@@ -353,26 +340,6 @@ export default function AddBudgetItemModal({
                 </div>
               </div>
 
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-800">
-                  Paid Amount
-                </label>
-
-                <div className="flex overflow-hidden rounded-xl border border-slate-300 focus-within:border-slate-500">
-                  <span className="flex items-center px-4 text-slate-500">
-                    ₹
-                  </span>
-
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={paidAmount}
-                    onChange={(e) => setPaidAmount(e.target.value)}
-                    className="min-w-0 flex-1 border-0 px-2 py-3 text-base outline-none"
-                  />
-                </div>
-              </div>
             </div>
 
             {/* VENDOR + NOTES */}
