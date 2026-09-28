@@ -186,20 +186,22 @@ export default async function BudgetPage() {
       (event) => event.budget !== 0 || event.quoted !== 0 || event.paid !== 0,
     );
 
-  const eventRows = unplannedPaid > 0
-    ? [
-        ...eventSummary,
-        {
-          id: "unplanned-expenses",
-          name: "Unplanned / No Event",
-          budget: 0,
-          quoted: 0,
-          paid: unplannedPaid,
-          balance: 0,
-          isUnplanned: true,
-        },
-      ]
-    : eventSummary.map((event) => ({ ...event, isUnplanned: false }));
+  const eventRows = [
+    ...eventSummary.map((event) => ({ ...event, isUnplanned: false })),
+    ...(unplannedPaid > 0
+      ? [
+          {
+            id: "unplanned-expenses",
+            name: "Unplanned / No Event",
+            budget: 0,
+            quoted: 0,
+            paid: unplannedPaid,
+            balance: 0,
+            isUnplanned: true,
+          },
+        ]
+      : []),
+  ];
 
   const categorySummary = categoryOptions
     .map((category) => {
@@ -402,7 +404,7 @@ export default async function BudgetPage() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex justify-end">
-                      <BudgetEventActions event={event} />
+                      {!event.isUnplanned && <BudgetEventActions event={event} />}
                     </div>
                   </td>
                 </tr>
