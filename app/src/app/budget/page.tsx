@@ -387,20 +387,20 @@ export default async function BudgetPage() {
             </thead>
 
             <tbody className="divide-y">
-              {eventSummary.map((event) => (
+              {eventRows.map((event) => (
                 <tr key={event.id}>
                   <td className="px-6 py-4 font-medium">{event.name}</td>
                   <td className="px-6 py-4 text-right">
-                    {formatCurrency(event.budget)}
+                    {event.isUnplanned ? "—" : formatCurrency(event.budget)}
                   </td>
                   <td className="px-6 py-4 text-right">
-                    {formatCurrency(event.quoted)}
+                    {event.isUnplanned ? "—" : formatCurrency(event.quoted)}
                   </td>
                   <td className="px-6 py-4 text-right">
                     {formatCurrency(event.paid)}
                   </td>
                   <td className="px-6 py-4 text-right font-medium">
-                    {formatCurrency(event.balance)}
+                    {event.isUnplanned ? "—" : formatCurrency(event.balance)}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex justify-end">
