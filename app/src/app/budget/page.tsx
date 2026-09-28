@@ -22,7 +22,6 @@ type BudgetItem = {
   category_id: string;
   description: string;
   budget_amount: number;
-  quoted_amount: number;
   paid_amount: number;
   vendor_name: string | null;
   notes: string | null;
@@ -54,7 +53,7 @@ export default async function BudgetPage() {
     supabase
       .from("budget_items")
       .select(
-        "id, event_id, category_id, description, budget_amount, quoted_amount, paid_amount, vendor_name, notes",
+        "id, event_id, category_id, description, budget_amount, paid_amount, vendor_name, notes",
       )
       .eq("wedding_id", wedding.id)
       .order("created_at", { ascending: true }),
@@ -138,11 +137,6 @@ export default async function BudgetPage() {
     0,
   );
 
-  const totalQuoted = items.reduce(
-    (sum, item) => sum + Number(item.quoted_amount || 0),
-    0,
-  );
-
   const totalPaid = totalPaidFromExpenses;
 
   const totalBalance = totalBudget - totalPaid;
@@ -164,11 +158,6 @@ export default async function BudgetPage() {
         0,
       );
 
-      const quoted = matching.reduce(
-        (sum, item) => sum + Number(item.quoted_amount || 0),
-        0,
-      );
-
       const paid = matching.reduce(
         (sum, item) => sum + (paidByItem.get(item.id) ?? 0),
         0,
@@ -177,13 +166,12 @@ export default async function BudgetPage() {
       return {
         ...event,
         budget,
-        quoted,
         paid,
         balance: budget - paid,
       };
     })
     .filter(
-      (event) => event.budget !== 0 || event.quoted !== 0 || event.paid !== 0,
+      (event) => event.budget !== 0 || event.paid !== 0,
     );
 
   const eventRows = [
@@ -194,7 +182,6 @@ export default async function BudgetPage() {
             id: "unplanned-expenses",
             name: "Unplanned / No Event",
             budget: 0,
-            quoted: 0,
             paid: unplannedPaid,
             balance: 0,
             isUnplanned: true,
@@ -214,25 +201,19 @@ export default async function BudgetPage() {
         0,
       );
 
-      const quoted = matching.reduce(
-        (sum, item) => sum + Number(item.quoted_amount || 0),
-        0,
-      );
-
       const paid = paidByCategory.get(category.id) ?? 0;
 
       return {
         ...category,
         itemCount,
         budget,
-        quoted,
         paid,
         balance: budget - paid,
       };
     })
     .filter(
       (category) =>
-        category.budget !== 0 || category.quoted !== 0 || category.paid !== 0,
+        category.budget !== 0 || category.paid !== 0,
     );
 
   return (
@@ -254,22 +235,13 @@ export default async function BudgetPage() {
       </div>
 
       {/* KPI CARDS */}
-      <section className="mt-7 grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4">
+      <section className="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-3 lg:gap-4">
         <div className="rounded-2xl border border-slate-300 bg-white p-5 shadow-sm sm:p-5">
           <p className="text-sm font-medium text-slate-600 sm:text-sm">
             Total Budgeted
           </p>
           <p className="mt-2 text-2xl font-bold text-slate-900 sm:text-2xl">
             {formatCurrency(totalBudget)}
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-slate-300 bg-white p-5 shadow-sm sm:p-5">
-          <p className="text-sm font-medium text-slate-600 sm:text-sm">
-            Total Quoted
-          </p>
-          <p className="mt-2 text-2xl font-bold text-slate-900 sm:text-2xl">
-            {formatCurrency(totalQuoted)}
           </p>
         </div>
 
@@ -326,13 +298,6 @@ export default async function BudgetPage() {
                 </div>
 
                 <div>
-                  <p className="text-sm font-medium text-slate-600">Quoted</p>
-                  <p className="mt-1 text-lg font-bold text-slate-900">
-                    {event.isUnplanned ? "—" : formatCurrency(event.quoted)}
-                  </p>
-                </div>
-
-                <div>
                   <p className="text-sm font-medium text-slate-600">Paid</p>
                   <p className="mt-1 text-lg font-bold text-slate-900">
                     {formatCurrency(event.paid)}
@@ -357,10 +322,6 @@ export default async function BudgetPage() {
                 <p className="font-semibold">{formatCurrency(totalBudget)}</p>
               </div>
               <div>
-                <span className="text-slate-500">Quoted</span>
-                <p className="font-semibold">{formatCurrency(totalQuoted)}</p>
-              </div>
-              <div>
                 <span className="text-slate-500">Paid</span>
                 <p className="font-semibold">{formatCurrency(totalPaid)}</p>
               </div>
@@ -379,7 +340,6 @@ export default async function BudgetPage() {
               <tr>
                 <th className="px-6 py-3 font-medium">Event</th>
                 <th className="px-6 py-3 text-right font-medium">Budgeted</th>
-                <th className="px-6 py-3 text-right font-medium">Quoted</th>
                 <th className="px-6 py-3 text-right font-medium">Paid</th>
                 <th className="px-6 py-3 text-right font-medium">Balance</th>
                 <th className="px-6 py-3 text-right font-medium">Actions</th>
@@ -392,9 +352,6 @@ export default async function BudgetPage() {
                   <td className="px-6 py-4 font-medium">{event.name}</td>
                   <td className="px-6 py-4 text-right">
                     {event.isUnplanned ? "—" : formatCurrency(event.budget)}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    {event.isUnplanned ? "—" : formatCurrency(event.quoted)}
                   </td>
                   <td className="px-6 py-4 text-right">
                     {formatCurrency(event.paid)}
@@ -416,9 +373,6 @@ export default async function BudgetPage() {
                 <td className="px-6 py-4">Total</td>
                 <td className="px-6 py-4 text-right">
                   {formatCurrency(totalBudget)}
-                </td>
-                <td className="px-6 py-4 text-right">
-                  {formatCurrency(totalQuoted)}
                 </td>
                 <td className="px-6 py-4 text-right">
                   {formatCurrency(totalPaid)}
@@ -468,13 +422,6 @@ export default async function BudgetPage() {
                 </div>
 
                 <div>
-                  <p className="text-sm font-medium text-slate-600">Quoted</p>
-                  <p className="mt-1 text-lg font-bold text-slate-900">
-                    {formatCurrency(category.quoted)}
-                  </p>
-                </div>
-
-                <div>
                   <p className="text-sm font-medium text-slate-600">Paid</p>
                   <p className="mt-1 text-lg font-bold text-slate-900">
                     {formatCurrency(category.paid)}
@@ -500,7 +447,6 @@ export default async function BudgetPage() {
                 <th className="px-6 py-3 font-medium">Category</th>
                 <th className="px-6 py-3 text-center font-medium">Budget Items</th>
                 <th className="px-6 py-3 text-right font-medium">Budgeted</th>
-                <th className="px-6 py-3 text-right font-medium">Quoted</th>
                 <th className="px-6 py-3 text-right font-medium">Paid</th>
                 <th className="px-6 py-3 text-right font-medium">Balance</th>
                 <th className="px-6 py-3 text-right font-medium">Actions</th>
@@ -520,9 +466,6 @@ export default async function BudgetPage() {
 
                   <td className="px-6 py-4 text-right">
                     {formatCurrency(category.budget)}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    {formatCurrency(category.quoted)}
                   </td>
                   <td className="px-6 py-4 text-right">
                     {formatCurrency(category.paid)}
@@ -606,15 +549,6 @@ export default async function BudgetPage() {
                     </div>
 
                     <div>
-                      <p className="text-sm font-medium text-slate-600">
-                        Quoted
-                      </p>
-                      <p className="mt-1 text-lg font-bold text-slate-900">
-                        {formatCurrency(Number(item.quoted_amount || 0))}
-                      </p>
-                    </div>
-
-                    <div>
                       <p className="text-sm font-medium text-slate-600">Paid</p>
                       <p className="mt-1 text-lg font-bold text-slate-900">
                         {formatCurrency(paidByItem.get(item.id) ?? 0)}
@@ -645,7 +579,6 @@ export default async function BudgetPage() {
                 <th className="px-6 py-3 font-medium">Event</th>
                 <th className="px-6 py-3 font-medium">Category</th>
                 <th className="px-6 py-3 text-right font-medium">Budgeted</th>
-                <th className="px-6 py-3 text-right font-medium">Quoted</th>
                 <th className="px-6 py-3 text-right font-medium">Paid</th>
                 <th className="px-6 py-3 text-right font-medium">Balance</th>
                 <th className="px-6 py-3 text-right font-medium">Actions</th>
@@ -679,10 +612,6 @@ export default async function BudgetPage() {
 
                     <td className="px-6 py-4 text-right">
                       {formatCurrency(Number(item.budget_amount || 0))}
-                    </td>
-
-                    <td className="px-6 py-4 text-right">
-                      {formatCurrency(Number(item.quoted_amount || 0))}
                     </td>
 
                     <td className="px-6 py-4 text-right">
