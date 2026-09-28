@@ -15,7 +15,6 @@ type BudgetItem = {
   category_id: string;
   description: string;
   budget_amount: number;
-  quoted_amount: number;
   vendor_name: string | null;
   notes: string | null;
 };
@@ -50,10 +49,6 @@ export default function AddBudgetItemModal({
     item?.budget_amount != null ? String(item.budget_amount) : "",
   );
 
-  const [quotedAmount, setQuotedAmount] = useState(
-    item?.quoted_amount != null ? String(item.quoted_amount) : "",
-  );
-
   const [vendorName, setVendorName] = useState(item?.vendor_name ?? "");
 
   const [notes, setNotes] = useState(item?.notes ?? "");
@@ -69,7 +64,6 @@ export default function AddBudgetItemModal({
     setCategoryId(item.category_id);
     setDescription(item.description);
     setBudgetAmount(String(item.budget_amount ?? ""));
-    setQuotedAmount(String(item.quoted_amount ?? ""));
     setVendorName(item.vendor_name ?? "");
     setNotes(item.notes ?? "");
   }, [item]);
@@ -96,14 +90,12 @@ export default function AddBudgetItemModal({
     }
 
     const budget = Number(budgetAmount);
-    const quoted = Number(quotedAmount || 0);
-
-    if (!Number.isFinite(budget) || !Number.isFinite(quoted)) {
-      setError("Please enter valid amounts.");
+    if (!Number.isFinite(budget)) {
+      setError("Please enter a valid budget amount.");
       return;
     }
 
-    if (budget < 0 || quoted < 0) {
+    if (budget < 0) {
       setError("Amounts cannot be negative.");
       return;
     }
@@ -129,7 +121,6 @@ export default function AddBudgetItemModal({
             category_id: categoryId,
             description: description.trim(),
             budget_amount: budget,
-            quoted_amount: quoted,
             vendor_name: vendorName.trim() || null,
             notes: notes.trim() || null,
           })
@@ -147,7 +138,6 @@ export default function AddBudgetItemModal({
             category_id: categoryId,
             description: description.trim(),
             budget_amount: budget,
-            quoted_amount: quoted,
             vendor_name: vendorName.trim() || null,
             notes: notes.trim() || null,
           });
@@ -221,7 +211,7 @@ export default function AddBudgetItemModal({
 
             <p className="mt-1 text-sm text-slate-500 sm:text-base">
               {isEditing
-                ? "Update the budget and quote details. Paid amounts are recorded in Expenses."
+                ? "Update the budget details. Paid amounts are recorded in Expenses."
                 : "Add a lump-sum package or an individual expense."}
             </p>
           </div>
@@ -244,7 +234,7 @@ export default function AddBudgetItemModal({
         >
           <div className="space-y-6 px-5 py-6 sm:px-7 sm:py-7">
             {/* EVENT + CATEGORY */}
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-5">
               <div>
                 <label className="mb-2 block text-sm font-medium text-slate-800">
                   Event *
@@ -314,27 +304,6 @@ export default function AddBudgetItemModal({
                     step="0.01"
                     value={budgetAmount}
                     onChange={(e) => setBudgetAmount(e.target.value)}
-                    className="min-w-0 flex-1 border-0 px-2 py-3 text-base outline-none"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-800">
-                  Quoted Amount
-                </label>
-
-                <div className="flex overflow-hidden rounded-xl border border-slate-300 focus-within:border-slate-500">
-                  <span className="flex items-center px-4 text-slate-500">
-                    ₹
-                  </span>
-
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={quotedAmount}
-                    onChange={(e) => setQuotedAmount(e.target.value)}
                     className="min-w-0 flex-1 border-0 px-2 py-3 text-base outline-none"
                   />
                 </div>
