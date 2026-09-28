@@ -16,7 +16,6 @@ type BudgetItem = {
   category_id: string;
   description: string;
   budget_amount: number;
-  quoted_amount: number;
   paid_amount: number;
   vendor_name: string | null;
   notes: string | null;
