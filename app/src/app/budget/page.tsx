@@ -486,8 +486,6 @@ export default async function BudgetPage() {
       </section>
 
       {/* BUDGET ITEMS */}
-      <SourceOfFunds />
-
       <section className="mt-6 overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-sm">
         <div className="border-b px-5 py-5 sm:px-6">
           <h2 className="text-lg font-semibold text-slate-900 sm:text-xl">
@@ -495,146 +493,218 @@ export default async function BudgetPage() {
           </h2>
           <p className="mt-2 text-base text-slate-600">
             {items.length} {items.length === 1 ? "budget item" : "budget items"}{" "}
-            entered.
+            entered. Select a category to view its items.
           </p>
         </div>
 
-        {/* MOBILE CARDS */}
-        <div className="divide-y md:hidden">
-          {items.length === 0 ? (
-            <div className="p-6 text-sm text-slate-500">
-              No budget items have been added yet.
-            </div>
-          ) : (
-            items.map((item) => {
-              const balance =
-                Number(item.budget_amount || 0) -
-                (paidByItem.get(item.id) ?? 0);
+        {items.length === 0 ? (
+          <div className="p-6 text-sm text-slate-500">
+            No budget items have been added yet.
+          </div>
+        ) : (
+          <div className="divide-y">
+            {categorySummary.map((category) => {
+              const categoryItems = items.filter(
+                (item) => item.category_id === category.id,
+              );
+
+              if (categoryItems.length === 0) return null;
 
               return (
-                <div key={item.id} className="p-6">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="min-w-0">
-                      <h3 className="break-words text-lg font-bold leading-snug text-slate-900">
-                        {item.description}
-                      </h3>
+                <details key={category.id} className="group">
+                  <summary className="cursor-pointer list-none bg-white px-5 py-4 hover:bg-slate-50 sm:px-6">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-sm text-slate-600 transition-transform group-open:rotate-90">
+                          ›
+                        </span>
 
-                      <p className="mt-2 text-base text-slate-600">
-                        {eventMap.get(item.event_id) ?? "—"} ·{" "}
-                        {categoryMap.get(item.category_id) ?? "—"}
-                      </p>
-
-                      {item.vendor_name && (
-                        <p className="mt-2 text-base text-slate-600">
-                          Vendor: {item.vendor_name}
-                        </p>
-                      )}
-                    </div>
-
-                    <BudgetItemActions
-                      item={item}
-                      events={eventOptions}
-                      categories={categoryOptions}
-                    />
-                  </div>
-
-                  <div className="mt-6 grid grid-cols-2 gap-5 rounded-xl border border-slate-200 bg-slate-50 p-5">
-                    <div>
-                      <p className="text-sm font-medium text-slate-600">
-                        Budgeted
-                      </p>
-                      <p className="mt-1 text-lg font-bold text-slate-900">
-                        {formatCurrency(Number(item.budget_amount || 0))}
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className="text-sm font-medium text-slate-600">Paid</p>
-                      <p className="mt-1 text-lg font-bold text-slate-900">
-                        {formatCurrency(paidByItem.get(item.id) ?? 0)}
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className="text-sm font-medium text-slate-600">
-                        Balance
-                      </p>
-                      <p className="mt-1 text-lg font-bold text-slate-900">
-                        {formatCurrency(balance)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
-
-        {/* DESKTOP TABLE */}
-        <div className="hidden overflow-x-auto md:block">
-          <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-left text-slate-600">
-              <tr>
-                <th className="px-6 py-3 font-medium">Description</th>
-                <th className="px-6 py-3 font-medium">Event</th>
-                <th className="px-6 py-3 font-medium">Category</th>
-                <th className="px-6 py-3 text-right font-medium">Budgeted</th>
-                <th className="px-6 py-3 text-right font-medium">Paid</th>
-                <th className="px-6 py-3 text-right font-medium">Balance</th>
-                <th className="px-6 py-3 text-right font-medium">Actions</th>
-              </tr>
-            </thead>
-
-            <tbody className="divide-y">
-              {items.map((item) => {
-                const balance =
-                  Number(item.budget_amount || 0) -
-                  (paidByItem.get(item.id) ?? 0);
-
-                return (
-                  <tr key={item.id}>
-                    <td className="max-w-xs px-6 py-4 font-medium">
-                      <div className="break-words">{item.description}</div>
-                      {item.vendor_name && (
-                        <div className="mt-1 text-xs text-slate-500">
-                          {item.vendor_name}
+                        <div className="min-w-0">
+                          <div className="font-semibold text-slate-900">
+                            {category.name}
+                          </div>
+                          <div className="mt-0.5 text-xs text-slate-500">
+                            {category.itemCount}{" "}
+                            {category.itemCount === 1
+                              ? "budget item"
+                              : "budget items"}
+                          </div>
                         </div>
-                      )}
-                    </td>
+                      </div>
 
-                    <td className="px-6 py-4">
-                      {eventMap.get(item.event_id) ?? "—"}
-                    </td>
+                      <div className="grid grid-cols-3 gap-4 pl-10 text-left sm:pl-10 lg:min-w-[500px] lg:pl-0">
+                        <div>
+                          <div className="text-xs text-slate-500">Budgeted</div>
+                          <div className="mt-1 text-sm font-semibold text-slate-900">
+                            {formatCurrency(category.budget)}
+                          </div>
+                        </div>
 
-                    <td className="px-6 py-4">
-                      {categoryMap.get(item.category_id) ?? "—"}
-                    </td>
+                        <div>
+                          <div className="text-xs text-slate-500">Paid</div>
+                          <div className="mt-1 text-sm font-semibold text-slate-900">
+                            {formatCurrency(category.paid)}
+                          </div>
+                        </div>
 
-                    <td className="px-6 py-4 text-right">
-                      {formatCurrency(Number(item.budget_amount || 0))}
-                    </td>
+                        <div>
+                          <div className="text-xs text-slate-500">Balance</div>
+                          <div className="mt-1 text-sm font-semibold text-slate-900">
+                            {formatCurrency(category.balance)}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </summary>
 
-                    <td className="px-6 py-4 text-right">
-                      {formatCurrency(paidByItem.get(item.id) ?? 0)}
-                    </td>
+                  <div className="border-t border-slate-200 bg-slate-50">
+                    {/* MOBILE */}
+                    <div className="divide-y md:hidden">
+                      {categoryItems.map((item) => {
+                        const balance =
+                          Number(item.budget_amount || 0) -
+                          (paidByItem.get(item.id) ?? 0);
 
-                    <td className="px-6 py-4 text-right font-medium">
-                      {formatCurrency(balance)}
-                    </td>
+                        return (
+                          <div key={item.id} className="bg-white p-5">
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="min-w-0">
+                                <h3 className="break-words text-base font-bold leading-snug text-slate-900">
+                                  {item.description}
+                                </h3>
 
-                    <td className="px-6 py-4 text-right">
-                      <BudgetItemActions
-                        item={item}
-                        events={eventOptions}
-                        categories={categoryOptions}
-                      />
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                                <p className="mt-2 text-sm text-slate-600">
+                                  {eventMap.get(item.event_id) ?? "—"}
+                                </p>
+
+                                {item.vendor_name && (
+                                  <p className="mt-1 text-sm text-slate-500">
+                                    Vendor: {item.vendor_name}
+                                  </p>
+                                )}
+                              </div>
+
+                              <BudgetItemActions
+                                item={item}
+                                events={eventOptions}
+                                categories={categoryOptions}
+                              />
+                            </div>
+
+                            <div className="mt-4 grid grid-cols-3 gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                              <div>
+                                <p className="text-xs font-medium text-slate-500">
+                                  Budgeted
+                                </p>
+                                <p className="mt-1 text-sm font-bold text-slate-900">
+                                  {formatCurrency(
+                                    Number(item.budget_amount || 0),
+                                  )}
+                                </p>
+                              </div>
+
+                              <div>
+                                <p className="text-xs font-medium text-slate-500">
+                                  Paid
+                                </p>
+                                <p className="mt-1 text-sm font-bold text-slate-900">
+                                  {formatCurrency(paidByItem.get(item.id) ?? 0)}
+                                </p>
+                              </div>
+
+                              <div>
+                                <p className="text-xs font-medium text-slate-500">
+                                  Balance
+                                </p>
+                                <p className="mt-1 text-sm font-bold text-slate-900">
+                                  {formatCurrency(balance)}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* DESKTOP */}
+                    <div className="hidden overflow-x-auto md:block">
+                      <table className="w-full text-sm">
+                        <thead className="bg-slate-100 text-left text-slate-600">
+                          <tr>
+                            <th className="px-6 py-3 font-medium">Description</th>
+                            <th className="px-6 py-3 font-medium">Event</th>
+                            <th className="px-6 py-3 text-right font-medium">
+                              Budgeted
+                            </th>
+                            <th className="px-6 py-3 text-right font-medium">
+                              Paid
+                            </th>
+                            <th className="px-6 py-3 text-right font-medium">
+                              Balance
+                            </th>
+                            <th className="px-6 py-3 text-right font-medium">
+                              Actions
+                            </th>
+                          </tr>
+                        </thead>
+
+                        <tbody className="divide-y bg-white">
+                          {categoryItems.map((item) => {
+                            const balance =
+                              Number(item.budget_amount || 0) -
+                              (paidByItem.get(item.id) ?? 0);
+
+                            return (
+                              <tr key={item.id}>
+                                <td className="max-w-xs px-6 py-4 font-medium">
+                                  <div className="break-words">
+                                    {item.description}
+                                  </div>
+
+                                  {item.vendor_name && (
+                                    <div className="mt-1 text-xs text-slate-500">
+                                      {item.vendor_name}
+                                    </div>
+                                  )}
+                                </td>
+
+                                <td className="px-6 py-4">
+                                  {eventMap.get(item.event_id) ?? "—"}
+                                </td>
+
+                                <td className="px-6 py-4 text-right">
+                                  {formatCurrency(
+                                    Number(item.budget_amount || 0),
+                                  )}
+                                </td>
+
+                                <td className="px-6 py-4 text-right">
+                                  {formatCurrency(paidByItem.get(item.id) ?? 0)}
+                                </td>
+
+                                <td className="px-6 py-4 text-right font-medium">
+                                  {formatCurrency(balance)}
+                                </td>
+
+                                <td className="px-6 py-4 text-right">
+                                  <BudgetItemActions
+                                    item={item}
+                                    events={eventOptions}
+                                    categories={categoryOptions}
+                                  />
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </details>
+              );
+            })}
+          </div>
+        )}
       </section>
 
       <div className="mt-6 text-center">
