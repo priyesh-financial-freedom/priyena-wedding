@@ -478,6 +478,7 @@ export default async function BudgetPage() {
                 <th className="px-6 py-3 text-right font-medium">Quoted</th>
                 <th className="px-6 py-3 text-right font-medium">Paid</th>
                 <th className="px-6 py-3 text-right font-medium">Balance</th>
+                <th className="px-6 py-3 text-right font-medium">Actions</th>
               </tr>
             </thead>
 
@@ -618,7 +619,6 @@ export default async function BudgetPage() {
                 <th className="px-6 py-3 font-medium">Description</th>
                 <th className="px-6 py-3 font-medium">Event</th>
                 <th className="px-6 py-3 font-medium">Category</th>
-                <th className="px-6 py-3 text-center font-medium">Items</th>
                 <th className="px-6 py-3 text-right font-medium">Budgeted</th>
                 <th className="px-6 py-3 text-right font-medium">Quoted</th>
                 <th className="px-6 py-3 text-right font-medium">Paid</th>
