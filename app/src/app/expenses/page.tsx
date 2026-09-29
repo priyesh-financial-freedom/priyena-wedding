@@ -256,6 +256,12 @@ export default function ExpensesPage() {
 
     setError("");
     setShowForm(true);
+
+    requestAnimationFrame(() => {
+      document
+        .getElementById(`expense-${expense.id}`)
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
   }
 
   async function deleteExpense(id: string) {
@@ -274,6 +280,176 @@ export default function ExpensesPage() {
     }
 
     await loadData();
+  }
+
+  function renderExpenseForm() {
+    return (
+      <section className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <h2 className="text-lg font-semibold text-slate-900">
+          {editingExpenseId ? "Edit Expense" : "Add Expense"}
+        </h2>
+
+        <div className="mt-5 grid gap-4 sm:grid-cols-2">
+          <div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-700">
+                Paid By
+              </label>
+              <select
+                value={paidBy}
+                onChange={(event) => setPaidBy(event.target.value)}
+                className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm"
+              >
+                <option value="">Select person</option>
+                <option value="Priyesh">Priyesh</option>
+                <option value="Shobhna">Shobhna</option>
+                <option value="Priyena">Priyena</option>
+                <option value="Shobhit">Shobhit</option>
+              </select>
+            </div>
+
+            <label className="mb-1 block text-sm font-medium text-slate-700">
+              Date
+            </label>
+            <DateInput
+              value={date}
+              onChange={(event) => setDate(event.target.value)}
+              className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm"
+            />
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-700">
+              Budget Item
+            </label>
+            <select
+              value={budgetItemId}
+              onChange={(event) => {
+                const value = event.target.value;
+                setBudgetItemId(value);
+
+                if (value === "not-budgeted") {
+                  setCategoryId("not-budgeted");
+                  return;
+                }
+
+                if (value === "not-planned") {
+                  setCategoryId("");
+                  return;
+                }
+
+                const selectedItem = budgetItems.find(
+                  (item) => item.id === value,
+                );
+
+                setCategoryId(selectedItem?.category_id ?? "");
+              }}
+              className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm"
+            >
+              <option value="">Select budget item</option>
+              {budgetItems.map((item) => {
+                const category = categories.find(
+                  (category) => category.id === item.category_id,
+                );
+
+                return (
+                  <option key={item.id} value={item.id}>
+                    {category
+                      ? `${category.name} — ${item.description}`
+                      : item.description}
+                  </option>
+                );
+              })}
+              <option value="not-planned">Not Planned</option>
+              <option value="not-budgeted">Not Budgeted</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-700">
+              Category
+            </label>
+            <select
+              value={categoryId}
+              onChange={(event) => setCategoryId(event.target.value)}
+              disabled={!budgetItemId || budgetItemId !== "not-planned"}
+              className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm disabled:bg-slate-100 disabled:text-slate-500"
+            >
+              <option value="">
+                {budgetItemId === "not-planned"
+                  ? "Select category"
+                  : "Automatically selected"}
+              </option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+              {budgetItemId === "not-budgeted" && (
+                <option value="not-budgeted">Not Budgeted</option>
+              )}
+            </select>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-700">
+              Amount
+            </label>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={amount}
+              onChange={(event) => setAmount(event.target.value)}
+              placeholder="0"
+              className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm"
+            />
+          </div>
+
+          <div className="sm:col-span-2">
+            <label className="mb-1 block text-sm font-medium text-slate-700">
+              Notes{" "}
+              <span className="font-normal text-slate-400">(optional)</span>
+            </label>
+            <textarea
+              value={notes}
+              onChange={(event) => setNotes(event.target.value)}
+              rows={3}
+              placeholder="What was this expense for?"
+              className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm"
+            />
+          </div>
+        </div>
+
+        {error && (
+          <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600">
+            {error}
+          </p>
+        )}
+
+        <div className="mt-5 flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={resetForm}
+            className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={saveExpense}
+            disabled={saving}
+            className="rounded-xl bg-[#7f2935] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+          >
+            {saving
+              ? "Saving..."
+              : editingExpenseId
+                ? "Save Changes"
+                : "Save Expense"}
+          </button>
+        </div>
+      </section>
+    );
   }
 
   return (
@@ -296,173 +472,7 @@ export default function ExpensesPage() {
           </button>
         </div>
 
-        {showForm && (
-          <section className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <h2 className="text-lg font-semibold text-slate-900">
-              {editingExpenseId ? "Edit Expense" : "Add Expense"}
-            </h2>
-
-            <div className="mt-5 grid gap-4 sm:grid-cols-2">
-              <div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium text-slate-700">
-                    Paid By
-                  </label>
-                  <select
-                    value={paidBy}
-                    onChange={(event) => setPaidBy(event.target.value)}
-                    className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm"
-                  >
-                    <option value="">Select person</option>
-                    <option value="Priyesh">Priyesh</option>
-                    <option value="Shobhna">Shobhna</option>
-                    <option value="Priyena">Priyena</option>
-                    <option value="Shobhit">Shobhit</option>
-                  </select>
-                </div>
-
-                <label className="mb-1 block text-sm font-medium text-slate-700">
-                  Date
-                </label>
-                <DateInput
-                  value={date}
-                  onChange={(event) => setDate(event.target.value)}
-                  className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm"
-                />
-              </div>
-
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
-                  Budget Item
-                </label>
-                <select
-                  value={budgetItemId}
-                  onChange={(event) => {
-                    const value = event.target.value;
-                    setBudgetItemId(value);
-
-                    if (value === "not-budgeted") {
-                      setCategoryId("not-budgeted");
-                      return;
-                    }
-
-                    if (value === "not-planned") {
-                      setCategoryId("");
-                      return;
-                    }
-
-                    const selectedItem = budgetItems.find(
-                      (item) => item.id === value,
-                    );
-
-                    setCategoryId(selectedItem?.category_id ?? "");
-                  }}
-                  className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm"
-                >
-                  <option value="">Select budget item</option>
-                  {budgetItems.map((item) => {
-                    const category = categories.find(
-                      (category) => category.id === item.category_id,
-                    );
-
-                    return (
-                      <option key={item.id} value={item.id}>
-                        {category
-                          ? `${category.name} — ${item.description}`
-                          : item.description}
-                      </option>
-                    );
-                  })}
-                  <option value="not-planned">Not Planned</option>
-                  <option value="not-budgeted">Not Budgeted</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
-                  Category
-                </label>
-                <select
-                  value={categoryId}
-                  onChange={(event) => setCategoryId(event.target.value)}
-                  disabled={!budgetItemId || budgetItemId !== "not-planned"}
-                  className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm disabled:bg-slate-100 disabled:text-slate-500"
-                >
-                  <option value="">
-                    {budgetItemId === "not-planned"
-                      ? "Select category"
-                      : "Automatically selected"}
-                  </option>
-                  {categories.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
-                  {budgetItemId === "not-budgeted" && (
-                    <option value="not-budgeted">Not Budgeted</option>
-                  )}
-                </select>
-              </div>
-
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-700">
-                  Amount
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={amount}
-                  onChange={(event) => setAmount(event.target.value)}
-                  placeholder="0"
-                  className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm"
-                />
-              </div>
-
-              <div className="sm:col-span-2">
-                <label className="mb-1 block text-sm font-medium text-slate-700">
-                  Notes{" "}
-                  <span className="font-normal text-slate-400">(optional)</span>
-                </label>
-                <textarea
-                  value={notes}
-                  onChange={(event) => setNotes(event.target.value)}
-                  rows={3}
-                  placeholder="What was this expense for?"
-                  className="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm"
-                />
-              </div>
-            </div>
-
-            {error && (
-              <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600">
-                {error}
-              </p>
-            )}
-
-            <div className="mt-5 flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={resetForm}
-                className="rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={saveExpense}
-                disabled={saving}
-                className="rounded-xl bg-[#7f2935] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
-              >
-                {saving
-                  ? "Saving..."
-                  : editingExpenseId
-                    ? "Save Changes"
-                    : "Save Expense"}
-              </button>
-            </div>
-          </section>
-        )}
+        {showForm && !editingExpenseId && renderExpenseForm()}
 
         {error && !showForm && (
           <div className="mb-6 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600">
@@ -523,10 +533,11 @@ export default function ExpensesPage() {
                   (expense.category_id ? "Not Planned" : "—");
 
                 return (
-                  <div
-                    key={expense.id}
-                    className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between"
-                  >
+                  <>
+                    <div
+                      id={`expense-${expense.id}`}
+                      className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between"
+                    >
                     <div>
                       <p className="font-medium text-slate-900">
                         {expense.notes || item}
@@ -560,7 +571,9 @@ export default function ExpensesPage() {
                         Delete
                       </button>
                     </div>
-                  </div>
+
+                    {editingExpenseId === expense.id && renderExpenseForm()}
+                  </>
                 );
               })}
             </div>
