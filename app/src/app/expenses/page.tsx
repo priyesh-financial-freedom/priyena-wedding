@@ -519,18 +519,33 @@ export default function ExpensesPage() {
           ) : (
             <div className="divide-y divide-slate-100">
               {expenses.map((expense) => {
+                const selectedBudgetItem = expense.budget_item_id
+                  ? budgetItems.find((item) => item.id === expense.budget_item_id)
+                  : null;
+
                 const category =
                   expense.category_id === "not-budgeted"
                     ? "Not Budgeted"
-                    : (categories.find(
+                    : (selectedBudgetItem
+                        ? categories.find(
+                            (category) =>
+                              category.id === selectedBudgetItem.category_id,
+                          )?.name
+                        : null) ??
+                      categories.find(
                         (category) => category.id === expense.category_id,
                       )?.name ??
                       expense.budget_categories?.[0]?.name ??
-                      (expense.category_id ? "Category" : "Not Budgeted"));
+                      (expense.category_id ? "Category" : "Not Budgeted");
 
                 const item =
+                  selectedBudgetItem?.description ??
                   expense.budget_items?.[0]?.description ??
-                  (expense.category_id ? "Not Planned" : "—");
+                  (expense.budget_item_id
+                    ? "Budget item"
+                    : expense.category_id
+                      ? "Not Planned"
+                      : "—");
 
                 return (
                   <div key={expense.id}>
