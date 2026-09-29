@@ -533,7 +533,7 @@ export default function ExpensesPage() {
                   (expense.category_id ? "Not Planned" : "—");
 
                 return (
-                  <>
+                  <div key={expense.id}>
                     <div
                       id={`expense-${expense.id}`}
                       className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between"
@@ -571,9 +571,10 @@ export default function ExpensesPage() {
                         Delete
                       </button>
                     </div>
+                    </div>
 
                     {editingExpenseId === expense.id && renderExpenseForm()}
-                  </>
+                  </div>
                 );
               })}
             </div>
