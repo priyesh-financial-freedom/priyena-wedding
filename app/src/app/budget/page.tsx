@@ -464,12 +464,21 @@ export default async function BudgetPage() {
                     {/* MOBILE */}
                     <div className="divide-y md:hidden">
                       {categoryItems.map((item) => {
-                        const balance =
-                          Number(item.budget_amount || 0) -
-                          (paidByItem.get(item.id) ?? 0);
+                        const budgetAmount = Number(item.budget_amount || 0);
+                        const paidAmount = paidByItem.get(item.id) ?? 0;
+                        const balance = budgetAmount - paidAmount;
+                        const isFullyPaid =
+                          budgetAmount > 1000 && paidAmount === budgetAmount;
 
                         return (
-                          <div key={item.id} className="bg-white p-5">
+                          <div
+                            key={item.id}
+                            className={
+                              isFullyPaid
+                                ? "border-l-4 border-green-500 bg-green-50 p-5"
+                                : "bg-white p-5"
+                            }
+                          >
                             <div className="flex items-start justify-between gap-4">
                               <div className="min-w-0">
                                 <h3 className="break-words text-base font-bold leading-snug text-slate-900">
@@ -494,7 +503,13 @@ export default async function BudgetPage() {
                               />
                             </div>
 
-                            <div className="mt-4 grid grid-cols-3 gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                            <div
+                              className={
+                                isFullyPaid
+                                  ? "mt-4 grid grid-cols-3 gap-3 rounded-xl border border-green-200 bg-green-100 p-4"
+                                  : "mt-4 grid grid-cols-3 gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4"
+                              }
+                            >
                               <div>
                                 <p className="text-xs font-medium text-slate-500">
                                   Budgeted
@@ -553,12 +568,21 @@ export default async function BudgetPage() {
 
                         <tbody className="divide-y bg-white">
                           {categoryItems.map((item) => {
-                            const balance =
-                              Number(item.budget_amount || 0) -
-                              (paidByItem.get(item.id) ?? 0);
+                            const budgetAmount = Number(item.budget_amount || 0);
+                            const paidAmount = paidByItem.get(item.id) ?? 0;
+                            const balance = budgetAmount - paidAmount;
+                            const isFullyPaid =
+                              budgetAmount > 1000 && paidAmount === budgetAmount;
 
                             return (
-                              <tr key={item.id}>
+                              <tr
+                                key={item.id}
+                                className={
+                                  isFullyPaid
+                                    ? "bg-green-50"
+                                    : "bg-white"
+                                }
+                              >
                                 <td className="max-w-xs px-6 py-4 font-medium">
                                   <div className="break-words">
                                     {item.description}
