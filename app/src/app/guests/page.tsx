@@ -151,77 +151,89 @@ export default function GuestsPage() {
   const filteredFamilies = useMemo(() => {
     const query = search.trim().toLowerCase();
 
-    return families.filter((family) => {
-      const ownerName = ownerMap.get(family.guest_owner_id) ?? "";
+    return families
+      .filter((family) => {
+        const ownerName = ownerMap.get(family.guest_owner_id) ?? "";
 
-      const matchesSearch =
-        !query ||
-        family.family_name.toLowerCase().includes(query) ||
-        ownerName.toLowerCase().includes(query);
+        const matchesSearch =
+          !query ||
+          family.family_name.toLowerCase().includes(query) ||
+          ownerName.toLowerCase().includes(query);
 
-      let matchesFilter = true;
+        let matchesFilter = true;
 
-      if (filter === "pending") {
-        matchesFilter = family.rsvp_status === "pending";
-      }
+        if (filter === "pending") {
+          matchesFilter = family.rsvp_status === "pending";
+        }
 
-      if (filter === "priyesh") {
-        matchesFilter = ownerName === "Priyesh";
-      }
+        if (filter === "priyesh") {
+          matchesFilter = ownerName === "Priyesh";
+        }
 
-      if (filter === "shobhana") {
-        matchesFilter = ownerName === "Shobhana";
-      }
+        if (filter === "shobhana") {
+          matchesFilter = ownerName === "Shobhana";
+        }
 
-      if (filter === "priyena") {
-        matchesFilter = ownerName === "Priyena";
-      }
+        if (filter === "priyena") {
+          matchesFilter = ownerName === "Priyena";
+        }
 
-      if (filter === "shobhit") {
-        matchesFilter = ownerName === "Shobhit";
-      }
+        if (filter === "shobhit") {
+          matchesFilter = ownerName === "Shobhit";
+        }
 
-      return matchesSearch && matchesFilter;
-    });
+        return matchesSearch && matchesFilter;
+      })
+      .sort(
+        (a, b) =>
+          Number(b.rsvp_status === "confirmed") -
+          Number(a.rsvp_status === "confirmed"),
+      );
   }, [families, ownerMap, search, filter]);
 
   const filteredIndividuals = useMemo(() => {
     const query = search.trim().toLowerCase();
 
-    return individualGuests.filter((guest) => {
-      const ownerName = guest.guest_owner_id
-        ? (ownerMap.get(guest.guest_owner_id) ?? "")
-        : "";
+    return individualGuests
+      .filter((guest) => {
+        const ownerName = guest.guest_owner_id
+          ? (ownerMap.get(guest.guest_owner_id) ?? "")
+          : "";
 
-      const matchesSearch =
-        !query ||
-        guest.full_name.toLowerCase().includes(query) ||
-        ownerName.toLowerCase().includes(query);
+        const matchesSearch =
+          !query ||
+          guest.full_name.toLowerCase().includes(query) ||
+          ownerName.toLowerCase().includes(query);
 
-      let matchesFilter = true;
+        let matchesFilter = true;
 
-      if (filter === "pending") {
-        matchesFilter = guest.rsvp_status === "pending";
-      }
+        if (filter === "pending") {
+          matchesFilter = guest.rsvp_status === "pending";
+        }
 
-      if (filter === "priyesh") {
-        matchesFilter = ownerName === "Priyesh";
-      }
+        if (filter === "priyesh") {
+          matchesFilter = ownerName === "Priyesh";
+        }
 
-      if (filter === "shobhana") {
-        matchesFilter = ownerName === "Shobhana";
-      }
+        if (filter === "shobhana") {
+          matchesFilter = ownerName === "Shobhana";
+        }
 
-      if (filter === "priyena") {
-        matchesFilter = ownerName === "Priyena";
-      }
+        if (filter === "priyena") {
+          matchesFilter = ownerName === "Priyena";
+        }
 
-      if (filter === "shobhit") {
-        matchesFilter = ownerName === "Shobhit";
-      }
+        if (filter === "shobhit") {
+          matchesFilter = ownerName === "Shobhit";
+        }
 
-      return matchesSearch && matchesFilter;
-    });
+        return matchesSearch && matchesFilter;
+      })
+      .sort(
+        (a, b) =>
+          Number(b.rsvp_status === "confirmed") -
+          Number(a.rsvp_status === "confirmed"),
+      );
   }, [individualGuests, ownerMap, search, filter]);
 
   const totalPersons = useMemo(
