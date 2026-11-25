@@ -11,6 +11,7 @@ type Family = {
   family_name: string;
   invited: boolean;
   rsvp_status: string;
+  relationship_category: string;
   notes: string | null;
   guest_count: number;
   guest_owner_id: string;
@@ -22,6 +23,7 @@ type IndividualGuest = {
   full_name: string;
   invited: boolean;
   rsvp_status: string;
+  relationship_category: string;
   notes: string | null;
   guest_owner_id: string | null;
   wedding_id: string;
@@ -166,6 +168,10 @@ export default function GuestsPage() {
           matchesFilter = family.rsvp_status === "pending";
         }
 
+        if (["Family", "Friends", "Relatives", "Business Acquaintances", "Others"].includes(filter)) {
+          matchesFilter = (family.relationship_category ?? "Others") === filter;
+        }
+
         if (filter === "priyesh") {
           matchesFilter = ownerName === "Priyesh";
         }
@@ -209,6 +215,10 @@ export default function GuestsPage() {
 
         if (filter === "pending") {
           matchesFilter = guest.rsvp_status === "pending";
+        }
+
+        if (["Family", "Friends", "Relatives", "Business Acquaintances", "Others"].includes(filter)) {
+          matchesFilter = (guest.relationship_category ?? "Others") === filter;
         }
 
         if (filter === "priyesh") {
@@ -309,6 +319,11 @@ export default function GuestsPage() {
               ["shobhana", "Shobhana"],
               ["priyena", "Priyena"],
               ["shobhit", "Shobhit"],
+              ["Family", "Family"],
+              ["Friends", "Friends"],
+              ["Relatives", "Relatives"],
+              ["Business Acquaintances", "Business"],
+              ["Others", "Others"],
               ["pending", "Pending RSVP"],
             ].map(([value, label]) => (
               <button
@@ -379,6 +394,7 @@ export default function GuestsPage() {
                                   {ownerName}
                                 </strong>
                               </span>
+                              <span>Category: <strong className="font-medium text-slate-700">{family.relationship_category ?? "Others"}</strong></span>
                             </div>
                           </div>
 
@@ -456,6 +472,8 @@ export default function GuestsPage() {
                                   {ownerName}
                                 </strong>
                               </span>
+
+                              <span>Category: <strong className="font-medium text-slate-700">{guest.relationship_category ?? "Others"}</strong></span>
 
                               <span>1 person</span>
                             </div>
