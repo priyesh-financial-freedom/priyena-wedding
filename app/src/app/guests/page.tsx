@@ -246,14 +246,20 @@ export default function GuestsPage() {
       );
   }, [individualGuests, ownerMap, search, filter]);
 
-  const totalPersons = useMemo(
-    () =>
-      filteredFamilies.reduce(
-        (total, family) => total + (family.guest_count ?? 0),
-        0,
-      ) + filteredIndividuals.length,
-    [filteredFamilies, filteredIndividuals],
-  );
+  const guestSummary = useMemo(() => {
+    const countPeople = (status: string) =>
+      families
+        .filter((family) => family.rsvp_status === status)
+        .reduce((total, family) => total + (family.guest_count ?? 0), 0) +
+      individualGuests.filter((guest) => guest.rsvp_status === status).length;
+
+    return {
+      total: families.reduce((total, family) => total + (family.guest_count ?? 0), 0) + individualGuests.length,
+      confirmed: countPeople("confirmed"),
+      pending: countPeople("pending"),
+      declined: countPeople("declined"),
+    };
+  }, [families, individualGuests]);
 
   return (
     <main className="min-h-screen bg-slate-50 p-6 md:p-8">
@@ -278,26 +284,29 @@ export default function GuestsPage() {
           </button>
         </div>
 
-        <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="rounded-xl bg-white p-5 shadow-sm">
-            <p className="text-sm text-slate-500">Family Invitations</p>
-            <p className="mt-1 text-2xl font-bold text-slate-900">
-              {families.length}
-            </p>
+        <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <div className="rounded-xl bg-white p-4 shadow-sm">
+            <p className="text-sm text-slate-500">Total Guests</p>
+            <p className="mt-1 text-2xl font-bold text-slate-900">{guestSummary.total}</p>
+            <p className="mt-1 text-xs text-slate-400">All invited persons</p>
           </div>
 
-          <div className="rounded-xl bg-white p-5 shadow-sm">
-            <p className="text-sm text-slate-500">Individual Invitations</p>
-            <p className="mt-1 text-2xl font-bold text-slate-900">
-              {individualGuests.length}
-            </p>
+          <div className="rounded-xl bg-white p-4 shadow-sm">
+            <p className="text-sm text-green-700">Confirmed</p>
+            <p className="mt-1 text-2xl font-bold text-green-700">{guestSummary.confirmed}</p>
+            <p className="mt-1 text-xs text-slate-400">Persons confirmed</p>
           </div>
 
-          <div className="rounded-xl bg-white p-5 shadow-sm">
-            <p className="text-sm text-slate-500">Persons</p>
-            <p className="mt-1 text-2xl font-bold text-slate-900">
-              {totalPersons}
-            </p>
+          <div className="rounded-xl bg-white p-4 shadow-sm">
+            <p className="text-sm text-amber-700">Pending</p>
+            <p className="mt-1 text-2xl font-bold text-amber-700">{guestSummary.pending}</p>
+            <p className="mt-1 text-xs text-slate-400">Awaiting response</p>
+          </div>
+
+          <div className="rounded-xl bg-white p-4 shadow-sm">
+            <p className="text-sm text-red-700">Declined</p>
+            <p className="mt-1 text-2xl font-bold text-red-700">{guestSummary.declined}</p>
+            <p className="mt-1 text-xs text-slate-400">Persons declined</p>
           </div>
         </div>
 
