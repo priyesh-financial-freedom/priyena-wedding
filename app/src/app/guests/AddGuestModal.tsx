@@ -34,6 +34,7 @@ export default function AddGuestModal({
   const [guestCount, setGuestCount] = useState("1");
   const [ownerId, setOwnerId] = useState(owners[0]?.id ?? "");
   const [rsvpStatus, setRsvpStatus] = useState("pending");
+  const [relationshipCategory, setRelationshipCategory] = useState("Others");
   const [notes, setNotes] = useState("");
 
   const [individualName, setIndividualName] = useState("");
@@ -45,6 +46,7 @@ export default function AddGuestModal({
     setGuestCount("1");
     setOwnerId(owners[0]?.id ?? "");
     setRsvpStatus("pending");
+    setRelationshipCategory("Others");
     setNotes("");
     setIndividualName("");
     onClose();
@@ -86,6 +88,7 @@ export default function AddGuestModal({
         family_name: familyName.trim(),
         invited: true,
         rsvp_status: rsvpStatus,
+        relationship_category: relationshipCategory,
         notes: notes.trim() || null,
         guest_count: count,
       });
@@ -131,6 +134,7 @@ export default function AddGuestModal({
       full_name: individualName.trim(),
       invited: true,
       rsvp_status: rsvpStatus,
+      relationship_category: relationshipCategory,
       notes: notes.trim() || null,
       age_group: "adult",
       attendance_status: "pending",
@@ -321,6 +325,12 @@ export default function AddGuestModal({
               </>
             )}
 
+            <div>
+              <FieldLabel>Relationship Category</FieldLabel>
+              <select value={relationshipCategory} onChange={(e) => setRelationshipCategory(e.target.value)} className={inputClass()}>
+                <option value="Family">Family</option><option value="Friends">Friends</option><option value="Relatives">Relatives</option><option value="Business Acquaintances">Business Acquaintances</option><option value="Others">Others</option>
+              </select>
+            </div>
             <div>
               <FieldLabel>RSVP</FieldLabel>
               <select
