@@ -93,6 +93,10 @@ export default async function GuestFamilyPage({ params }: PageProps) {
             </div>
 
             <div>
+              <p className="text-sm text-slate-500">Relationship Category</p>
+              <p className="mt-1 font-medium text-slate-900">{family.relationship_category ?? "Others"}</p>
+            </div>
+            <div>
               <p className="text-sm text-slate-500">RSVP</p>
               <p className="mt-1 font-medium capitalize text-slate-900">
                 {family.rsvp_status}
@@ -120,6 +124,7 @@ export default async function GuestFamilyPage({ params }: PageProps) {
             guest_count: family.guest_count,
             guest_owner_id: family.guest_owner_id,
             rsvp_status: family.rsvp_status,
+            relationship_category: family.relationship_category ?? "Others",
             notes: family.notes,
           }}
           owners={ownersResult.data ?? []}
