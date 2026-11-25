@@ -12,6 +12,7 @@ type Guest = {
   id: string;
   full_name: string;
   rsvp_status: string;
+  relationship_category: string;
   notes: string | null;
   guest_owner_id: string | null;
 };
@@ -32,6 +33,7 @@ export default function EditIndividualGuestModal({
   const [fullName, setFullName] = useState(guest.full_name);
   const [ownerId, setOwnerId] = useState(guest.guest_owner_id ?? "");
   const [rsvpStatus, setRsvpStatus] = useState(guest.rsvp_status ?? "pending");
+  const [relationshipCategory, setRelationshipCategory] = useState(guest.relationship_category ?? "Others");
   const [notes, setNotes] = useState(guest.notes ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -53,6 +55,7 @@ export default function EditIndividualGuestModal({
         full_name: fullName.trim(),
         guest_owner_id: ownerId || null,
         rsvp_status: rsvpStatus,
+        relationship_category: relationshipCategory,
         notes: notes.trim() || null,
       })
       .eq("id", guest.id)
@@ -123,6 +126,12 @@ export default function EditIndividualGuestModal({
             </select>
           </div>
 
+          <div>
+            <label className="mb-2 block text-sm font-medium text-slate-700">Relationship Category</label>
+            <select value={relationshipCategory} onChange={(event) => setRelationshipCategory(event.target.value)} className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm">
+              <option value="Family">Family</option><option value="Friends">Friends</option><option value="Relatives">Relatives</option><option value="Business Acquaintances">Business Acquaintances</option><option value="Others">Others</option>
+            </select>
+          </div>
           <div>
             <label className="mb-2 block text-sm font-medium text-slate-700">
               RSVP
