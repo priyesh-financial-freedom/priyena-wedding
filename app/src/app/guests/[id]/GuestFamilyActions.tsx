@@ -15,6 +15,7 @@ type Family = {
   guest_count: number;
   guest_owner_id: string;
   rsvp_status: string;
+  relationship_category: string;
   notes: string | null;
 };
 
@@ -34,6 +35,7 @@ export default function GuestFamilyActions({ family, owners }: Props) {
   const [guestCount, setGuestCount] = useState(String(family.guest_count ?? 1));
   const [ownerId, setOwnerId] = useState(family.guest_owner_id);
   const [rsvpStatus, setRsvpStatus] = useState(family.rsvp_status);
+  const [relationshipCategory, setRelationshipCategory] = useState(family.relationship_category ?? "Others");
   const [notes, setNotes] = useState(family.notes ?? "");
 
   function inputClass() {
@@ -74,6 +76,7 @@ export default function GuestFamilyActions({ family, owners }: Props) {
         guest_count: count,
         guest_owner_id: ownerId,
         rsvp_status: rsvpStatus,
+        relationship_category: relationshipCategory,
         notes: notes.trim() || null,
       })
       .eq("id", family.id);
@@ -191,6 +194,12 @@ export default function GuestFamilyActions({ family, owners }: Props) {
             </div>
           </div>
 
+          <div>
+            <label className={labelClass()}>Relationship Category</label>
+            <select value={relationshipCategory} onChange={(e) => setRelationshipCategory(e.target.value)} className={inputClass()}>
+              <option value="Family">Family</option><option value="Friends">Friends</option><option value="Relatives">Relatives</option><option value="Business Acquaintances">Business Acquaintances</option><option value="Others">Others</option>
+            </select>
+          </div>
           <div>
             <label className={labelClass()}>RSVP</label>
             <select
