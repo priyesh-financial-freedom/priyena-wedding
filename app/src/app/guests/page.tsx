@@ -16,6 +16,7 @@ type Family = {
   guest_count: number;
   guest_owner_id: string;
   wedding_id: string;
+  room_required: boolean;
 };
 
 type IndividualGuest = {
@@ -28,6 +29,7 @@ type IndividualGuest = {
   guest_owner_id: string | null;
   wedding_id: string;
   guest_family_id: string | null;
+  room_required: boolean;
 };
 
 type FamilyMember = {
@@ -41,6 +43,8 @@ export default function GuestsPage() {
     [],
   );
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
+  const [allocatedFamilyIds, setAllocatedFamilyIds] = useState<Set<string>>(new Set());
+  const [allocatedGuestIds, setAllocatedGuestIds] = useState<Set<string>>(new Set());
   const [weddingId, setWeddingId] = useState<string | null>(null);
   const [refreshGuests, setRefreshGuests] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -109,11 +113,68 @@ export default function GuestsPage() {
       setFamilies(familiesResult.data ?? []);
       setFamilyMembers(membersResult.data ?? []);
       setIndividualGuests(individualsResult.data ?? []);
+
+      // Read active room occupants from the same accommodation records used by the Accommodation module.
+      const { data: activeAllocations, error: allocationsError } = await supabase
+        .from("accommodation_allocations")
+        .select("id, guest_family_id, guest_id")
+        .eq("wedding_id", weddingResult.data?.id ?? "")
+        .neq("status", "cancelled");
+
+      if (allocationsError) console.error("Error loading accommodation allocations:", allocationsError);
+      const allocationIds = (activeAllocations ?? []).map((allocation) => allocation.id);
+      let familyIds = new Set<string>();
+      let guestIds = new Set<string>();
+
+      if (allocationIds.length > 0) {
+        const { data: rooms, error: roomsError } = await supabase
+          .from("accommodation_allocation_rooms")
+          .select("id, allocation_id")
+          .in("allocation_id", allocationIds);
+        if (roomsError) console.error("Error loading allocated rooms:", roomsError);
+
+        const roomAllocationIds = new Set((rooms ?? []).map((room) => room.allocation_id));
+        (activeAllocations ?? []).forEach((allocation) => {
+          if (!roomAllocationIds.has(allocation.id)) return;
+          if (allocation.guest_family_id) familyIds.add(allocation.guest_family_id);
+          if (allocation.guest_id) guestIds.add(allocation.guest_id);
+        });
+
+        const roomIds = (rooms ?? []).map((room) => room.id);
+        if (roomIds.length > 0) {
+          const { data: occupants, error: occupantsError } = await supabase
+            .from("accommodation_room_occupants")
+            .select("guest_family_id, guest_id")
+            .in("allocation_room_id", roomIds);
+          if (occupantsError) {
+            console.error("Error loading room occupants:", occupantsError);
+          } else {
+            (occupants ?? []).forEach((row) => {
+              if (row.guest_family_id) familyIds.add(row.guest_family_id);
+              if (row.guest_id) guestIds.add(row.guest_id);
+            });
+          }
+        }
+      }
+
+      setAllocatedFamilyIds(familyIds);
+      setAllocatedGuestIds(guestIds);
       setLoading(false);
     }
 
     loadData();
   }, [refreshGuests]);
+
+  async function updateRoomRequirement(type: "family" | "guest", id: string, roomRequired: boolean) {
+    const table = type === "family" ? "guest_families" : "guests";
+    const { error } = await supabase.from(table).update({ room_required: roomRequired }).eq("id", id);
+    if (error) {
+      console.error("Error updating room requirement:", error);
+      window.alert("Could not update accommodation requirement. Please try again.");
+      return;
+    }
+    setRefreshGuests((value) => value + 1);
+  }
 
   async function deleteIndividualGuest(guest: IndividualGuest) {
     const confirmed = window.confirm(
@@ -374,10 +435,10 @@ export default function GuestsPage() {
                       ownerMap.get(family.guest_owner_id) ?? "Unassigned";
 
                     return (
+                      <div key={family.id} className="rounded-xl bg-white shadow-sm transition hover:shadow-md">
                       <Link
-                        key={family.id}
                         href={`/guests/${family.id}`}
-                        className="block rounded-xl bg-white p-5 shadow-sm transition hover:shadow-md"
+                        className="block p-5"
                       >
                         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                           <div className="min-w-0">
@@ -434,6 +495,17 @@ export default function GuestsPage() {
                           </div>
                         )}
                       </Link>
+                      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 px-5 py-3">
+                        <span className={`rounded-full px-3 py-1.5 text-xs font-semibold ${allocatedFamilyIds.has(family.id) ? "bg-green-100 text-green-700" : family.room_required ? "bg-amber-100 text-amber-700" : "bg-slate-100 text-slate-600"}`}>
+                          {allocatedFamilyIds.has(family.id) ? "Room Allocated" : family.room_required ? "Room Not Allocated" : "Room Not Required"}
+                        </span>
+                        {!allocatedFamilyIds.has(family.id) && (
+                          <button type="button" onClick={() => updateRoomRequirement("family", family.id, !family.room_required)} className="text-xs font-medium text-slate-600 underline underline-offset-2 hover:text-slate-900">
+                            {family.room_required ? "Mark Room Not Required" : "Mark Room Required"}
+                          </button>
+                        )}
+                      </div>
+                      </div>
                     );
                   })}
                 </div>
@@ -550,6 +622,16 @@ export default function GuestsPage() {
                             {guest.notes}
                           </div>
                         )}
+                        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-3">
+                          <span className={`rounded-full px-3 py-1.5 text-xs font-semibold ${allocatedGuestIds.has(guest.id) ? "bg-green-100 text-green-700" : guest.room_required ? "bg-amber-100 text-amber-700" : "bg-slate-100 text-slate-600"}`}>
+                            {allocatedGuestIds.has(guest.id) ? "Room Allocated" : guest.room_required ? "Room Not Allocated" : "Room Not Required"}
+                          </span>
+                          {!allocatedGuestIds.has(guest.id) && (
+                            <button type="button" onClick={() => updateRoomRequirement("guest", guest.id, !guest.room_required)} className="text-xs font-medium text-slate-600 underline underline-offset-2 hover:text-slate-900">
+                              {guest.room_required ? "Mark Room Not Required" : "Mark Room Required"}
+                            </button>
+                          )}
+                        </div>
                       </div>
                     );
                   })}
