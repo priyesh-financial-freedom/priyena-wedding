@@ -76,6 +76,7 @@ export default function GuestsPage() {
   useEffect(() => {
     async function loadData() {
       setLoading(true);
+      setSharedRoomGroups([]);
 
       const [weddingResult, familiesResult, membersResult, individualsResult] =
         await Promise.all([
@@ -260,7 +261,6 @@ export default function GuestsPage() {
 
       setAllocatedFamilyIds(familyIds);
       setAllocatedGuestIds(guestIds);
-      setSharedRoomGroups([]);
       setLoading(false);
     }
 
