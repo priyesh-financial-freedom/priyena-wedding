@@ -99,6 +99,7 @@ export default function AccommodationAllocationsPage() {
   const [hotelId, setHotelId] = useState("");
   const [roomTypeId, setRoomTypeId] = useState("");
   const [roomNumber, setRoomNumber] = useState("");
+  const [selectedExistingRoomId, setSelectedExistingRoomId] = useState<string | null>(null);
 
   const [occupants, setOccupants] = useState<NewOccupant[]>([
     {
@@ -335,6 +336,14 @@ export default function AccommodationAllocationsPage() {
     return counts;
   }, [allocations]);
 
+  const partiallyFilledRooms = useMemo(() => allocations.flatMap((row) => {
+    const roomType = roomTypes.find((room) => room.id === row.room.room_type_id);
+    if (!roomType) return [];
+    const occupied = row.occupants.reduce((sum, occupant) => sum + Number(occupant.persons_allocated || 0), 0);
+    const remaining = Number(roomType.occupancy_capacity || 0) - occupied;
+    return remaining > 0 ? [{ ...row, roomType, occupied, remaining }] : [];
+  }), [allocations, roomTypes]);
+
   const allocatedPersons = allocations.reduce(
     (sum, row) =>
       sum +
@@ -393,7 +402,7 @@ export default function AccommodationAllocationsPage() {
       return;
     }
 
-    if (!roomNumber.trim()) {
+    if (!selectedExistingRoomId && !roomNumber.trim()) {
       setError(
         "Please enter a room number. A physical room needs a room number so occupants can share it.",
       );
@@ -476,10 +485,51 @@ export default function AccommodationAllocationsPage() {
       duplicateKeys.add(key);
     }
 
-    if (selectedRoomType && occupancyTotal > capacity) {
+    const existingRoom = selectedExistingRoomId ? allocations.find((row) => row.room.id === selectedExistingRoomId) : null;
+    const existingOccupancy = existingRoom ? existingRoom.occupants.reduce((sum, occupant) => sum + Number(occupant.persons_allocated || 0), 0) : 0;
+
+    if (selectedRoomType && existingOccupancy + occupancyTotal > capacity) {
       setError(
-        `This room has capacity for ${capacity} persons, but you have allocated ${occupancyTotal}.`,
+        `This room has capacity for ${capacity} persons, but existing occupants plus new occupants total ${existingOccupancy + occupancyTotal}.`,
       );
+      return;
+    }
+
+    if (selectedExistingRoomId) {
+      if (!existingRoom) {
+        setError("The selected room is no longer available. Please refresh and choose another room.");
+        return;
+      }
+      if (cleanedOccupants.some((occupant) => occupant.type === "family" ? existingRoom.occupants.some((current) => current.guest_family_id === occupant.id) : existingRoom.occupants.some((current) => current.guest_id === occupant.id))) {
+        setError("This guest is already staying in the selected room.");
+        return;
+      }
+      setSaving(true);
+      const occupantRows = cleanedOccupants.map((occupant) => ({
+        allocation_room_id: selectedExistingRoomId,
+        guest_family_id: occupant.type === "family" ? occupant.id : null,
+        guest_id: occupant.type === "guest" ? occupant.id : null,
+        persons_allocated: occupant.personsNumber,
+      }));
+      const { error: addOccupantsError } = await supabase.from("accommodation_room_occupants").insert(occupantRows);
+      if (addOccupantsError) {
+        setError(addOccupantsError.message);
+        setSaving(false);
+        return;
+      }
+      const { error: updateRoomError } = await supabase.from("accommodation_allocation_rooms").update({ persons_allocated: existingOccupancy + occupancyTotal }).eq("id", selectedExistingRoomId);
+      if (updateRoomError) {
+        for (const occupant of cleanedOccupants) {
+          const query = supabase.from("accommodation_room_occupants").delete().eq("allocation_room_id", selectedExistingRoomId);
+          if (occupant.type === "family") await query.eq("guest_family_id", occupant.id);
+          else await query.eq("guest_id", occupant.id);
+        }
+        setError(updateRoomError.message);
+        setSaving(false);
+        return;
+      }
+      router.push("/guests");
+      router.refresh();
       return;
     }
 
@@ -571,6 +621,7 @@ export default function AccommodationAllocationsPage() {
     setHotelId("");
     setRoomTypeId("");
     setRoomNumber("");
+    setSelectedExistingRoomId(null);
     setOccupants([
       {
         key: crypto.randomUUID(),
@@ -713,7 +764,39 @@ export default function AccommodationAllocationsPage() {
         {guestContext && (
           <section className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <h2 className="text-lg font-semibold text-slate-900">Available rooms by hotel</h2>
-            <p className="mt-1 text-xs text-slate-500">Unallocated room inventory by room type. Availability is based on existing allocations, not date-specific availability.</p>
+            <p className="mt-1 text-xs text-slate-500">Choose an empty room type or add a guest to a partially occupied physical room. Existing occupants and room numbers are shown.</p>
+            {partiallyFilledRooms.length > 0 && (
+              <div className="mt-5">
+                <h3 className="mb-3 text-sm font-semibold text-slate-800">Partially occupied rooms — add occupants to an existing room</h3>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {partiallyFilledRooms.map((row) => {
+                    const alreadyInRoom = row.occupants.some((occupant) => guestContext?.type === "family" ? occupant.guest_family_id === guestContext.id : occupant.guest_id === guestContext?.id);
+                    const requiredPersons = guestContext?.type === "family" ? (families.find((family) => family.id === guestContext.id)?.guest_count || 1) : 1;
+                    const canFitSelectedGuest = !alreadyInRoom && row.remaining >= requiredPersons;
+                    return (
+                      <button key={row.room.id} type="button" disabled={!canFitSelectedGuest} onClick={() => {
+                        setSelectedExistingRoomId(row.room.id);
+                        setHotelId(row.allocation.hotel_id);
+                        setRoomTypeId(row.room.room_type_id);
+                        setRoomNumber(row.room.room_number || "");
+                        setCheckIn(row.allocation.check_in_date);
+                        setCheckOut(row.allocation.check_out_date);
+                        setStatus(row.allocation.status);
+                        document.getElementById("new-room-allocation")?.scrollIntoView({behavior: "smooth"});
+                      }} className={`rounded-xl border p-4 text-left transition ${selectedExistingRoomId === row.room.id ? "border-blue-600 bg-blue-50" : "border-slate-200"} disabled:cursor-not-allowed disabled:opacity-50`}>
+                        <span className="block font-semibold text-slate-900">{hotelName(row.allocation.hotel_id)} · Room {row.room.room_number || "TBD"}</span>
+                        <span className="mt-1 block text-sm text-slate-600">{row.roomType.room_type}</span>
+                        <span className="mt-2 block text-sm font-medium text-green-700">{row.remaining} bed{row.remaining === 1 ? "" : "s"} available · {row.occupied}/{row.roomType.occupancy_capacity} occupied</span>
+                        <span className="mt-2 block text-xs font-semibold uppercase tracking-wide text-slate-500">Already allocated</span>
+                        {row.occupants.map((occupant) => <span key={occupant.id} className="mt-1 block text-sm text-slate-700">{occupantName(occupant)} ({occupant.persons_allocated})</span>)}
+                        <span className="mt-2 block text-xs text-slate-500">{formatDate(row.allocation.check_in_date)} → {formatDate(row.allocation.check_out_date)}</span>
+                        {!canFitSelectedGuest && <span className="mt-2 block text-xs text-amber-700">Selected guest cannot be added to this room</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
             <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {roomTypes.filter((room) => room.number_of_rooms > (usedRoomCounts[room.id] || 0)).map((room) => {
                 const available = room.number_of_rooms - (usedRoomCounts[room.id] || 0);
@@ -726,7 +809,7 @@ export default function AccommodationAllocationsPage() {
                   }} className={`rounded-xl border p-4 text-left transition hover:border-blue-500 ${roomTypeId === room.id ? "border-blue-600 bg-blue-50" : "border-slate-200"}`}>
                     <span className="block font-semibold text-slate-900">{hotel?.hotel_name || "Hotel"}</span>
                     <span className="mt-1 block text-sm text-slate-600">{room.room_type}</span>
-                    <span className="mt-2 block text-sm font-medium text-green-700">{available} room{available === 1 ? "" : "s"} available</span>
+                    <span className="mt-2 block text-sm font-medium text-green-700">{available} empty room{available === 1 ? "" : "s"} available</span>
                     <span className="block text-xs text-slate-500">Capacity: {room.occupancy_capacity} persons</span>
                   </button>
                 );
