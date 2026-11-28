@@ -452,6 +452,17 @@ export default function AccommodationAllocationsPage() {
       return;
     }
 
+    for (const occupant of cleanedOccupants) {
+      if (occupant.type === "family" && allocatedFamilyIds.has(occupant.id)) {
+        setError("This family already has a room allocation. Return to the Guest Directory to review it.");
+        return;
+      }
+      if (occupant.type === "guest" && allocatedGuestIds.has(occupant.id)) {
+        setError("This guest already has a room allocation. Return to the Guest Directory to review it.");
+        return;
+      }
+    }
+
     const duplicateKeys = new Set<string>();
 
     for (const occupant of cleanedOccupants) {
