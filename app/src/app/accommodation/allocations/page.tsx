@@ -83,6 +83,7 @@ function getNextDate(date: string) {
 
 export default function AccommodationAllocationsPage() {
   const router = useRouter();
+  const [guestContext, setGuestContext] = useState<{type: "family" | "guest"; id: string} | null>(null);
 
   const [weddingId, setWeddingId] = useState("");
   const [hotels, setHotels] = useState<Hotel[]>([]);
@@ -248,8 +249,36 @@ export default function AccommodationAllocationsPage() {
   }
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const type = params.get("guestType");
+    const id = params.get("guestId");
+    if ((type === "family" || type === "guest") && id && params.get("returnTo") === "guests") {
+      setGuestContext({type, id});
+    }
     loadData();
   }, []);
+
+  useEffect(() => {
+    if (!guestContext || loading) return;
+    const family = guestContext.type === "family" ? families.find((item) => item.id === guestContext.id) : null;
+    const guest = guestContext.type === "guest" ? guests.find((item) => item.id === guestContext.id) : null;
+    if (!family && !guest) {
+      setError("The selected guest could not be found. Return to the Guest Directory and try again.");
+      return;
+    }
+    setOccupants([{
+      key: crypto.randomUUID(),
+      type: guestContext.type,
+      id: guestContext.id,
+      persons: family ? String(family.guest_count) : "1",
+    }]);
+  }, [guestContext, loading === false]);
+
+  const contextGuestName = guestContext
+    ? guestContext.type === "family"
+      ? families.find((family) => family.id === guestContext.id)?.family_name
+      : guests.find((guest) => guest.id === guestContext.id)?.full_name
+    : null;
 
   const selectedRoomType = roomTypes.find((room) => room.id === roomTypeId);
 
@@ -418,6 +447,11 @@ export default function AccommodationAllocationsPage() {
       }
     }
 
+    if (guestContext && !cleanedOccupants.some((occupant) => occupant.type === guestContext.type && occupant.id === guestContext.id)) {
+      setError("Keep the selected guest in this room allocation.");
+      return;
+    }
+
     const duplicateKeys = new Set<string>();
 
     for (const occupant of cleanedOccupants) {
@@ -539,6 +573,11 @@ export default function AccommodationAllocationsPage() {
     setStatus("allocated");
     setNotes("");
 
+    if (guestContext) {
+      router.push("/guests");
+      router.refresh();
+      return;
+    }
     await loadData();
     setSaving(false);
   }
@@ -599,10 +638,10 @@ export default function AccommodationAllocationsPage() {
     <main className="min-h-screen bg-[#fffaf6] px-6 py-8">
       <div className="mx-auto max-w-7xl">
         <button
-          onClick={() => router.push("/accommodation")}
+          onClick={() => router.push(guestContext ? "/guests" : "/accommodation")}
           className="mb-6 text-sm font-medium text-slate-600 hover:text-slate-900"
         >
-          ← Back to Accommodation
+          {guestContext ? "← Back to Guest Directory" : "← Back to Accommodation"}
         </button>
 
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -616,6 +655,13 @@ export default function AccommodationAllocationsPage() {
             </p>
           </div>
         </div>
+
+        {guestContext && (
+          <div className="mb-6 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">
+            <strong>Allocating accommodation for: {contextGuestName || "Selected guest"}</strong>
+            <p className="mt-1">Choose an available room below. After successful allocation, you will return to the Guest Directory.</p>
+          </div>
+        )}
 
         {error && (
           <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -653,7 +699,33 @@ export default function AccommodationAllocationsPage() {
           </div>
         </div>
 
-        <details className="mb-8 rounded-2xl border border-slate-200 bg-white shadow-sm">
+        {guestContext && (
+          <section className="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h2 className="text-lg font-semibold text-slate-900">Available rooms by hotel</h2>
+            <p className="mt-1 text-xs text-slate-500">Unallocated room inventory by room type. Availability is based on existing allocations, not date-specific availability.</p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {roomTypes.filter((room) => room.number_of_rooms > (usedRoomCounts[room.id] || 0)).map((room) => {
+                const available = room.number_of_rooms - (usedRoomCounts[room.id] || 0);
+                const hotel = hotels.find((item) => item.id === room.hotel_id);
+                return (
+                  <button key={room.id} type="button" onClick={() => {
+                    setHotelId(room.hotel_id);
+                    setRoomTypeId(room.id);
+                    document.getElementById("new-room-allocation")?.scrollIntoView({behavior: "smooth"});
+                  }} className={`rounded-xl border p-4 text-left transition hover:border-blue-500 ${roomTypeId === room.id ? "border-blue-600 bg-blue-50" : "border-slate-200"}`}>
+                    <span className="block font-semibold text-slate-900">{hotel?.hotel_name || "Hotel"}</span>
+                    <span className="mt-1 block text-sm text-slate-600">{room.room_type}</span>
+                    <span className="mt-2 block text-sm font-medium text-green-700">{available} room{available === 1 ? "" : "s"} available</span>
+                    <span className="block text-xs text-slate-500">Capacity: {room.occupancy_capacity} persons</span>
+                  </button>
+                );
+              })}
+            </div>
+            {roomTypes.every((room) => room.number_of_rooms <= (usedRoomCounts[room.id] || 0)) && <p className="mt-3 text-sm text-amber-700">No unallocated room inventory is currently available.</p>}
+          </section>
+        )}
+
+        <details id="new-room-allocation" open={guestContext ? true : undefined} className="mb-8 rounded-2xl border border-slate-200 bg-white shadow-sm">
           <summary className="flex cursor-pointer list-none items-center justify-between px-6 py-5">
             <div>
               <h2 className="text-xl font-bold text-slate-900">
