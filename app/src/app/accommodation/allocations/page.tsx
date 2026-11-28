@@ -803,6 +803,8 @@ export default function AccommodationAllocationsPage() {
                 const hotel = hotels.find((item) => item.id === room.hotel_id);
                 return (
                   <button key={room.id} type="button" onClick={() => {
+                    setSelectedExistingRoomId(null);
+                    setRoomNumber("");
                     setHotelId(room.hotel_id);
                     setRoomTypeId(room.id);
                     document.getElementById("new-room-allocation")?.scrollIntoView({behavior: "smooth"});
@@ -823,7 +825,7 @@ export default function AccommodationAllocationsPage() {
           <summary className="flex cursor-pointer list-none items-center justify-between px-6 py-5">
             <div>
               <h2 className="text-xl font-bold text-slate-900">
-                New Room Allocation
+                {selectedExistingRoomId ? `Add Occupant to Room ${roomNumber}` : "New Room Allocation"}
               </h2>
               <p className="mt-1 text-sm text-slate-500">
                 Select a physical room and add one or more occupants.
@@ -831,11 +833,16 @@ export default function AccommodationAllocationsPage() {
             </div>
 
             <span className="ml-4 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white">
-              + New Allocation
+              {selectedExistingRoomId ? "Add to Existing Room" : "+ New Allocation"}
             </span>
           </summary>
 
           <div className="border-t border-slate-100 px-6 pb-6 pt-6">
+            {selectedExistingRoomId && (
+              <div className="mb-5 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+                Adding the selected guest to an existing physical room. Current occupants and stay dates are retained; only the new occupant will be added.
+              </div>
+            )}
             <div className="grid gap-5 md:grid-cols-2">
               <div>
                 <label className="mb-2 block text-sm font-medium text-slate-700">
@@ -844,6 +851,7 @@ export default function AccommodationAllocationsPage() {
 
                 <select
                   value={hotelId}
+                  disabled={Boolean(selectedExistingRoomId)}
                   onChange={(event) => {
                     setHotelId(event.target.value);
                     setRoomTypeId("");
@@ -867,7 +875,7 @@ export default function AccommodationAllocationsPage() {
                 <select
                   value={roomTypeId}
                   onChange={(event) => setRoomTypeId(event.target.value)}
-                  disabled={!hotelId}
+                  disabled={!hotelId || Boolean(selectedExistingRoomId)}
                   className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm disabled:bg-slate-50"
                 >
                   <option value="">Select room type</option>
@@ -899,6 +907,7 @@ export default function AccommodationAllocationsPage() {
                   type="text"
                   value={roomNumber}
                   onChange={(event) => setRoomNumber(event.target.value)}
+                  disabled={Boolean(selectedExistingRoomId)}
                   placeholder="e.g. 201"
                   className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm"
                 />
@@ -1086,6 +1095,7 @@ export default function AccommodationAllocationsPage() {
 
                 <DateInput
                   value={checkIn}
+                  disabled={Boolean(selectedExistingRoomId)}
                   onChange={(event) => {
                     const value = event.target.value;
                     setCheckIn(value);
@@ -1107,7 +1117,7 @@ export default function AccommodationAllocationsPage() {
                   value={checkOut}
                   min={checkIn ? getNextDate(checkIn) : undefined}
                   onChange={(event) => setCheckOut(event.target.value)}
-                  disabled={!checkIn}
+                  disabled={!checkIn || Boolean(selectedExistingRoomId)}
                   className="w-full rounded-lg border border-slate-200 px-3 py-2.5 text-sm disabled:bg-slate-50 disabled:text-slate-400"
                 />
               </div>
