@@ -123,19 +123,22 @@ export default function GuestsPage() {
 
       if (allocationsError) console.error("Error loading accommodation allocations:", allocationsError);
       const allocationIds = (activeAllocations ?? []).map((allocation) => allocation.id);
-      let familyIds = new Set<string>(
-        (activeAllocations ?? []).map((allocation) => allocation.guest_family_id).filter((id): id is string => Boolean(id)),
-      );
-      let guestIds = new Set<string>(
-        (activeAllocations ?? []).map((allocation) => allocation.guest_id).filter((id): id is string => Boolean(id)),
-      );
+      let familyIds = new Set<string>();
+      let guestIds = new Set<string>();
 
       if (allocationIds.length > 0) {
         const { data: rooms, error: roomsError } = await supabase
           .from("accommodation_allocation_rooms")
-          .select("id")
+          .select("id, allocation_id")
           .in("allocation_id", allocationIds);
         if (roomsError) console.error("Error loading allocated rooms:", roomsError);
+
+        const roomAllocationIds = new Set((rooms ?? []).map((room) => room.allocation_id));
+        (activeAllocations ?? []).forEach((allocation) => {
+          if (!roomAllocationIds.has(allocation.id)) return;
+          if (allocation.guest_family_id) familyIds.add(allocation.guest_family_id);
+          if (allocation.guest_id) guestIds.add(allocation.guest_id);
+        });
 
         const roomIds = (rooms ?? []).map((room) => room.id);
         if (roomIds.length > 0) {
@@ -146,8 +149,10 @@ export default function GuestsPage() {
           if (occupantsError) {
             console.error("Error loading room occupants:", occupantsError);
           } else {
-            familyIds = new Set((occupants ?? []).map((row) => row.guest_family_id).filter((id): id is string => Boolean(id)));
-            guestIds = new Set((occupants ?? []).map((row) => row.guest_id).filter((id): id is string => Boolean(id)));
+            (occupants ?? []).forEach((row) => {
+              if (row.guest_family_id) familyIds.add(row.guest_family_id);
+              if (row.guest_id) guestIds.add(row.guest_id);
+            });
           }
         }
       }
