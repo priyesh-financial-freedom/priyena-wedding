@@ -165,12 +165,16 @@ export default function GuestsPage() {
     loadData();
   }, [refreshGuests]);
 
-  async function updateRoomRequirement(type: "family" | "guest", id: string, roomRequired: boolean) {
+  async function updateRoomRequirement(type: "family" | "guest", id: string, roomRequired: boolean, openAllocation = false) {
     const table = type === "family" ? "guest_families" : "guests";
     const { error } = await supabase.from(table).update({ room_required: roomRequired }).eq("id", id);
     if (error) {
       console.error("Error updating room requirement:", error);
       window.alert("Could not update accommodation requirement. Please try again.");
+      return;
+    }
+    if (openAllocation && roomRequired) {
+      window.location.assign(`/accommodation/allocations?guestType=${type}&guestId=${encodeURIComponent(id)}&returnTo=guests`);
       return;
     }
     setRefreshGuests((value) => value + 1);
@@ -499,8 +503,11 @@ export default function GuestsPage() {
                         <span className={`rounded-full px-3 py-1.5 text-xs font-semibold ${allocatedFamilyIds.has(family.id) ? "bg-green-100 text-green-700" : family.room_required ? "bg-amber-100 text-amber-700" : "bg-slate-100 text-slate-600"}`}>
                           {allocatedFamilyIds.has(family.id) ? "Room Allocated" : family.room_required ? "Room Not Allocated" : "Room Not Required"}
                         </span>
+                        {family.room_required && !allocatedFamilyIds.has(family.id) && (
+                          <Link href={`/accommodation/allocations?guestType=family&guestId=${encodeURIComponent(family.id)}&returnTo=guests`} className="text-xs font-semibold text-blue-700 underline underline-offset-2">Allocate Room</Link>
+                        )}
                         {!allocatedFamilyIds.has(family.id) && (
-                          <button type="button" onClick={() => updateRoomRequirement("family", family.id, !family.room_required)} className="text-xs font-medium text-slate-600 underline underline-offset-2 hover:text-slate-900">
+                          <button type="button" onClick={() => updateRoomRequirement("family", family.id, !family.room_required, !family.room_required)} className="text-xs font-medium text-slate-600 underline underline-offset-2 hover:text-slate-900">
                             {family.room_required ? "Mark Room Not Required" : "Mark Room Required"}
                           </button>
                         )}
@@ -626,8 +633,11 @@ export default function GuestsPage() {
                           <span className={`rounded-full px-3 py-1.5 text-xs font-semibold ${allocatedGuestIds.has(guest.id) ? "bg-green-100 text-green-700" : guest.room_required ? "bg-amber-100 text-amber-700" : "bg-slate-100 text-slate-600"}`}>
                             {allocatedGuestIds.has(guest.id) ? "Room Allocated" : guest.room_required ? "Room Not Allocated" : "Room Not Required"}
                           </span>
+                          {guest.room_required && !allocatedGuestIds.has(guest.id) && (
+                            <Link href={`/accommodation/allocations?guestType=guest&guestId=${encodeURIComponent(guest.id)}&returnTo=guests`} className="text-xs font-semibold text-blue-700 underline underline-offset-2">Allocate Room</Link>
+                          )}
                           {!allocatedGuestIds.has(guest.id) && (
-                            <button type="button" onClick={() => updateRoomRequirement("guest", guest.id, !guest.room_required)} className="text-xs font-medium text-slate-600 underline underline-offset-2 hover:text-slate-900">
+                            <button type="button" onClick={() => updateRoomRequirement("guest", guest.id, !guest.room_required, !guest.room_required)} className="text-xs font-medium text-slate-600 underline underline-offset-2 hover:text-slate-900">
                               {guest.room_required ? "Mark Room Not Required" : "Mark Room Required"}
                             </button>
                           )}
