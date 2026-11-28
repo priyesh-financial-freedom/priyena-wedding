@@ -25,6 +25,8 @@ type RoomType = {
   number_of_rooms: number;
   occupancy_capacity: number;
   rate_per_night: number;
+  room_number_start: number | null;
+  room_number_end: number | null;
   notes: string | null;
 };
 
@@ -579,6 +581,15 @@ export default function ManageHotelPage() {
                             {room.occupancy_capacity}
                           </strong>
                         </span>
+
+                        {room.room_number_start != null && room.room_number_end != null && (
+                          <span>
+                            Room numbers:{" "}
+                            <strong className="font-medium text-slate-700">
+                              {room.room_number_start}–{room.room_number_end}
+                            </strong>
+                          </span>
+                        )}
 
                         <span>
                           Rate:{" "}
