@@ -117,14 +117,18 @@ export default function GuestsPage() {
       // Read active room occupants from the same accommodation records used by the Accommodation module.
       const { data: activeAllocations, error: allocationsError } = await supabase
         .from("accommodation_allocations")
-        .select("id")
+        .select("id, guest_family_id, guest_id")
         .eq("wedding_id", weddingResult.data?.id ?? "")
         .neq("status", "cancelled");
 
       if (allocationsError) console.error("Error loading accommodation allocations:", allocationsError);
       const allocationIds = (activeAllocations ?? []).map((allocation) => allocation.id);
-      let familyIds = new Set<string>();
-      let guestIds = new Set<string>();
+      let familyIds = new Set<string>(
+        (activeAllocations ?? []).map((allocation) => allocation.guest_family_id).filter((id): id is string => Boolean(id)),
+      );
+      let guestIds = new Set<string>(
+        (activeAllocations ?? []).map((allocation) => allocation.guest_id).filter((id): id is string => Boolean(id)),
+      );
 
       if (allocationIds.length > 0) {
         const { data: rooms, error: roomsError } = await supabase
