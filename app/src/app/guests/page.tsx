@@ -37,6 +37,20 @@ type FamilyMember = {
   name: string;
 };
 
+type SharedRoomOccupant = {
+  type: "family" | "guest";
+  id: string;
+  personsAllocated: number;
+};
+
+type SharedRoomGroup = {
+  key: string;
+  hotelName: string;
+  roomNumber: string;
+  roomType: string;
+  occupants: SharedRoomOccupant[];
+};
+
 export default function GuestsPage() {
   const [families, setFamilies] = useState<Family[]>([]);
   const [individualGuests, setIndividualGuests] = useState<IndividualGuest[]>(
@@ -45,6 +59,7 @@ export default function GuestsPage() {
   const [familyMembers, setFamilyMembers] = useState<FamilyMember[]>([]);
   const [allocatedFamilyIds, setAllocatedFamilyIds] = useState<Set<string>>(new Set());
   const [allocatedGuestIds, setAllocatedGuestIds] = useState<Set<string>>(new Set());
+  const [sharedRoomGroups, setSharedRoomGroups] = useState<SharedRoomGroup[]>([]);
   const [weddingId, setWeddingId] = useState<string | null>(null);
   const [refreshGuests, setRefreshGuests] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -61,6 +76,7 @@ export default function GuestsPage() {
   useEffect(() => {
     async function loadData() {
       setLoading(true);
+      setSharedRoomGroups([]);
 
       const [weddingResult, familiesResult, membersResult, individualsResult] =
         await Promise.all([
@@ -117,7 +133,7 @@ export default function GuestsPage() {
       // Read active room occupants from the same accommodation records used by the Accommodation module.
       const { data: activeAllocations, error: allocationsError } = await supabase
         .from("accommodation_allocations")
-        .select("id, guest_family_id, guest_id")
+        .select("id, hotel_id, guest_family_id, guest_id")
         .eq("wedding_id", weddingResult.data?.id ?? "")
         .neq("status", "cancelled");
 
@@ -129,32 +145,122 @@ export default function GuestsPage() {
       if (allocationIds.length > 0) {
         const { data: rooms, error: roomsError } = await supabase
           .from("accommodation_allocation_rooms")
-          .select("id, allocation_id")
+          .select("id, allocation_id, room_number, room_type_id, persons_allocated")
           .in("allocation_id", allocationIds);
         if (roomsError) console.error("Error loading allocated rooms:", roomsError);
 
-        const roomAllocationIds = new Set((rooms ?? []).map((room) => room.allocation_id));
-        (activeAllocations ?? []).forEach((allocation) => {
-          if (!roomAllocationIds.has(allocation.id)) return;
-          if (allocation.guest_family_id) familyIds.add(allocation.guest_family_id);
-          if (allocation.guest_id) guestIds.add(allocation.guest_id);
-        });
-
         const roomIds = (rooms ?? []).map((room) => room.id);
+        let occupants: Array<{
+          allocation_room_id: string;
+          guest_family_id: string | null;
+          guest_id: string | null;
+          persons_allocated: number;
+        }> = [];
+
         if (roomIds.length > 0) {
-          const { data: occupants, error: occupantsError } = await supabase
+          const { data: occupantRows, error: occupantsError } = await supabase
             .from("accommodation_room_occupants")
-            .select("guest_family_id, guest_id")
+            .select("allocation_room_id, guest_family_id, guest_id, persons_allocated")
             .in("allocation_room_id", roomIds);
           if (occupantsError) {
             console.error("Error loading room occupants:", occupantsError);
           } else {
-            (occupants ?? []).forEach((row) => {
-              if (row.guest_family_id) familyIds.add(row.guest_family_id);
-              if (row.guest_id) guestIds.add(row.guest_id);
-            });
+            occupants = occupantRows ?? [];
           }
         }
+
+        const hotelIds = [...new Set((activeAllocations ?? []).map((allocation) => allocation.hotel_id))];
+        const roomTypeIds = [...new Set((rooms ?? []).map((room) => room.room_type_id))];
+        const [hotelsResult, roomTypesResult] = await Promise.all([
+          hotelIds.length
+            ? supabase.from("accommodation_hotels").select("id, hotel_name").in("id", hotelIds)
+            : Promise.resolve({ data: [], error: null }),
+          roomTypeIds.length
+            ? supabase.from("accommodation_room_types").select("id, room_type").in("id", roomTypeIds)
+            : Promise.resolve({ data: [], error: null }),
+        ]);
+        if (hotelsResult.error) console.error("Error loading hotel names:", hotelsResult.error);
+        if (roomTypesResult.error) console.error("Error loading room types:", roomTypesResult.error);
+
+        const hotelNames = new Map((hotelsResult.data ?? []).map((hotel) => [hotel.id, hotel.hotel_name]));
+        const roomTypeNames = new Map((roomTypesResult.data ?? []).map((roomType) => [roomType.id, roomType.room_type]));
+        const allocationById = new Map((activeAllocations ?? []).map((allocation) => [allocation.id, allocation]));
+        const occupantsByRoom = new Map<string, SharedRoomOccupant[]>();
+
+        (rooms ?? []).forEach((room) => {
+          const allocation = allocationById.get(room.allocation_id);
+          if (!allocation) return;
+          const roomKey = room.room_number
+            ? `${allocation.hotel_id}:${room.room_number}`
+            : `${allocation.hotel_id}:unmarked:${room.id}`;
+          const roomOccupants = occupants.filter((occupant) => occupant.allocation_room_id === room.id);
+          const uniqueOccupants = new Map<string, SharedRoomOccupant>();
+
+          roomOccupants.forEach((occupant) => {
+            if (occupant.guest_family_id) {
+              familyIds.add(occupant.guest_family_id);
+              uniqueOccupants.set(`family:${occupant.guest_family_id}`, {
+                type: "family",
+                id: occupant.guest_family_id,
+                personsAllocated: Number(occupant.persons_allocated || 1),
+              });
+            }
+            if (occupant.guest_id) {
+              guestIds.add(occupant.guest_id);
+              uniqueOccupants.set(`guest:${occupant.guest_id}`, {
+                type: "guest",
+                id: occupant.guest_id,
+                personsAllocated: Number(occupant.persons_allocated || 1),
+              });
+            }
+          });
+
+          // Older allocations may only have the primary guest on the allocation row.
+          if (allocation.guest_family_id) {
+            familyIds.add(allocation.guest_family_id);
+            if (!uniqueOccupants.has(`family:${allocation.guest_family_id}`)) {
+              uniqueOccupants.set(`family:${allocation.guest_family_id}`, {
+                type: "family",
+                id: allocation.guest_family_id,
+                personsAllocated: Number(room.persons_allocated || 1),
+              });
+            }
+          }
+          if (allocation.guest_id) {
+            guestIds.add(allocation.guest_id);
+            if (!uniqueOccupants.has(`guest:${allocation.guest_id}`)) {
+              uniqueOccupants.set(`guest:${allocation.guest_id}`, {
+                type: "guest",
+                id: allocation.guest_id,
+                personsAllocated: Number(room.persons_allocated || 1),
+              });
+            }
+          }
+
+          const current = occupantsByRoom.get(roomKey) ?? [];
+          const merged = new Map(current.map((occupant) => [`${occupant.type}:${occupant.id}`, occupant]));
+          uniqueOccupants.forEach((occupant, key) => merged.set(key, occupant));
+          occupantsByRoom.set(roomKey, [...merged.values()]);
+        });
+
+        const groups: SharedRoomGroup[] = [];
+        (rooms ?? []).forEach((room) => {
+          const allocation = allocationById.get(room.allocation_id);
+          if (!allocation) return;
+          const roomKey = room.room_number
+            ? `${allocation.hotel_id}:${room.room_number}`
+            : `${allocation.hotel_id}:unmarked:${room.id}`;
+          const groupOccupants = occupantsByRoom.get(roomKey) ?? [];
+          if (groupOccupants.length < 2 || groups.some((group) => group.key === roomKey)) return;
+          groups.push({
+            key: roomKey,
+            hotelName: hotelNames.get(allocation.hotel_id) ?? "Hotel",
+            roomNumber: room.room_number ?? "Number not set",
+            roomType: roomTypeNames.get(room.room_type_id) ?? "Room",
+            occupants: groupOccupants,
+          });
+        });
+        setSharedRoomGroups(groups);
       }
 
       setAllocatedFamilyIds(familyIds);
@@ -311,6 +417,58 @@ export default function GuestsPage() {
       );
   }, [individualGuests, ownerMap, search, filter]);
 
+  const visibleSharedRoomGroups = useMemo(() => {
+    const matchingFamilyIds = new Set(filteredFamilies.map((family) => family.id));
+    const matchingGuestIds = new Set(filteredIndividuals.map((guest) => guest.id));
+    return sharedRoomGroups.filter((group) =>
+      group.occupants.some((occupant) =>
+        occupant.type === "family"
+          ? matchingFamilyIds.has(occupant.id)
+          : matchingGuestIds.has(occupant.id),
+      ),
+    );
+  }, [sharedRoomGroups, filteredFamilies, filteredIndividuals]);
+
+  const sharedFamilyIds = useMemo(
+    () => new Set(visibleSharedRoomGroups.flatMap((group) =>
+      group.occupants.filter((occupant) => occupant.type === "family").map((occupant) => occupant.id),
+    )),
+    [visibleSharedRoomGroups],
+  );
+
+  const sharedGuestIds = useMemo(
+    () => new Set(visibleSharedRoomGroups.flatMap((group) =>
+      group.occupants.filter((occupant) => occupant.type === "guest").map((occupant) => occupant.id),
+    )),
+    [visibleSharedRoomGroups],
+  );
+
+  const visibleFamilies = filteredFamilies.filter((family) => !sharedFamilyIds.has(family.id));
+  const visibleIndividuals = filteredIndividuals.filter((guest) => !sharedGuestIds.has(guest.id));
+
+  function sharedOccupantDetails(occupant: SharedRoomOccupant) {
+    if (occupant.type === "family") {
+      const family = families.find((item) => item.id === occupant.id);
+      return family ? {
+        name: family.family_name,
+        kind: "Family",
+        owner: ownerMap.get(family.guest_owner_id) ?? "Unassigned",
+        category: family.relationship_category ?? "Others",
+        rsvp: family.rsvp_status,
+        href: `/guests/${family.id}`,
+      } : null;
+    }
+    const guest = individualGuests.find((item) => item.id === occupant.id);
+    return guest ? {
+      name: guest.full_name,
+      kind: "Individual",
+      owner: guest.guest_owner_id ? ownerMap.get(guest.guest_owner_id) ?? "Unassigned" : "Unassigned",
+      category: guest.relationship_category ?? "Others",
+      rsvp: guest.rsvp_status,
+      href: null,
+    } : null;
+  }
+
   const guestSummary = useMemo(() => {
     const countPeople = (status: string) =>
       families
@@ -422,19 +580,78 @@ export default function GuestsPage() {
           </div>
         ) : (
           <div className="space-y-8">
-            {filteredFamilies.length > 0 && (
+            {visibleSharedRoomGroups.length > 0 && (
+              <section>
+                <div className="mb-3 flex items-center justify-between">
+                  <h2 className="text-lg font-semibold text-slate-900">Shared Rooms</h2>
+                  <span className="text-sm text-slate-500">
+                    {visibleSharedRoomGroups.length} rooms · {visibleSharedRoomGroups.reduce((total, group) => total + group.occupants.length, 0)} guest entries
+                  </span>
+                </div>
+                <div className="space-y-4">
+                  {visibleSharedRoomGroups.map((group) => (
+                    <div key={group.key} className="rounded-xl border border-blue-100 bg-white p-5 shadow-sm">
+                      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                        <div>
+                          <h3 className="text-lg font-semibold text-slate-900">Room {group.roomNumber}</h3>
+                          <p className="mt-1 text-sm text-slate-500">{group.hotelName} · {group.roomType}</p>
+                        </div>
+                        <span className="rounded-full bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700">
+                          {group.occupants.length} families / guests sharing
+                        </span>
+                      </div>
+                      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                        {group.occupants.map((occupant) => {
+                          const details = sharedOccupantDetails(occupant);
+                          if (!details) return null;
+                          const content = (
+                            <div className="rounded-lg bg-slate-50 p-3">
+                              <div className="flex flex-wrap items-center justify-between gap-2">
+                                <span className="font-semibold text-slate-900">{details.name}</span>
+                                <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${details.rsvp === "confirmed" ? "bg-green-100 text-green-700" : details.rsvp === "declined" ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"}`}>
+                                  {details.rsvp === "confirmed" ? "Confirmed" : details.rsvp === "declined" ? "Declined" : "Pending"}
+                                </span>
+                              </div>
+                              <p className="mt-1 text-xs text-slate-500">{details.kind} · {occupant.personsAllocated} {occupant.personsAllocated === 1 ? "person" : "persons"}</p>
+                              <p className="mt-1 text-xs text-slate-500">Owner: {details.owner} · Category: {details.category}</p>
+                              {occupant.type === "guest" && (
+                                <button
+                                  type="button"
+                                  onClick={(event) => {
+                                    event.preventDefault();
+                                    event.stopPropagation();
+                                    const guest = individualGuests.find((item) => item.id === occupant.id);
+                                    if (guest) setEditingIndividual(guest);
+                                  }}
+                                  className="mt-2 text-xs font-semibold text-blue-700 underline underline-offset-2"
+                                >
+                                  Edit guest
+                                </button>
+                              )}
+                            </div>
+                          );
+                          return details.href ? <Link key={`${occupant.type}:${occupant.id}`} href={details.href} className="block">{content}</Link> : <div key={`${occupant.type}:${occupant.id}`}>{content}</div>;
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {visibleFamilies.length > 0 && (
               <section>
                 <div className="mb-3 flex items-center justify-between">
                   <h2 className="text-lg font-semibold text-slate-900">
                     Family Invitations
                   </h2>
                   <span className="text-sm text-slate-500">
-                    {filteredFamilies.length} families
+                    {visibleFamilies.length} families
                   </span>
                 </div>
 
                 <div className="space-y-4">
-                  {filteredFamilies.map((family) => {
+                  {visibleFamilies.map((family) => {
                     const ownerName =
                       ownerMap.get(family.guest_owner_id) ?? "Unassigned";
 
@@ -519,19 +736,19 @@ export default function GuestsPage() {
               </section>
             )}
 
-            {filteredIndividuals.length > 0 && (
+            {visibleIndividuals.length > 0 && (
               <section>
                 <div className="mb-3 flex items-center justify-between">
                   <h2 className="text-lg font-semibold text-slate-900">
                     Direct Guests
                   </h2>
                   <span className="text-sm text-slate-500">
-                    {filteredIndividuals.length} guests
+                    {visibleIndividuals.length} guests
                   </span>
                 </div>
 
                 <div className="space-y-4">
-                  {filteredIndividuals.map((guest) => {
+                  {visibleIndividuals.map((guest) => {
                     const ownerName = guest.guest_owner_id
                       ? (ownerMap.get(guest.guest_owner_id) ?? "Unassigned")
                       : "Unassigned";
@@ -649,8 +866,9 @@ export default function GuestsPage() {
               </section>
             )}
 
-            {filteredFamilies.length === 0 &&
-              filteredIndividuals.length === 0 && (
+            {visibleSharedRoomGroups.length === 0 &&
+              visibleFamilies.length === 0 &&
+              visibleIndividuals.length === 0 && (
                 <div className="rounded-xl bg-white p-10 text-center shadow-sm">
                   <p className="font-medium text-slate-700">No guests found</p>
                   <p className="mt-1 text-sm text-slate-500">
