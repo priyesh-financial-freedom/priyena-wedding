@@ -817,7 +817,7 @@ export default function AccommodationAllocationsPage() {
                 );
               })}
             </div>
-            {roomTypes.every((room) => room.number_of_rooms <= (usedRoomCounts[room.id] || 0)) && <p className="mt-3 text-sm text-amber-700">No unallocated room inventory is currently available.</p>}
+            {roomTypes.every((room) => room.number_of_rooms <= (usedRoomCounts[room.id] || 0)) && <p className="mt-3 text-sm text-amber-700">No completely empty rooms are currently available. You can still choose a partially occupied room above.</p>}
           </section>
         )}
 
