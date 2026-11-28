@@ -218,19 +218,23 @@ export default function GuestsPage() {
           // Older allocations may only have the primary guest on the allocation row.
           if (allocation.guest_family_id) {
             familyIds.add(allocation.guest_family_id);
-            uniqueOccupants.set(`family:${allocation.guest_family_id}`, {
-              type: "family",
-              id: allocation.guest_family_id,
-              personsAllocated: Number(room.persons_allocated || 1),
-            });
+            if (!uniqueOccupants.has(`family:${allocation.guest_family_id}`)) {
+              uniqueOccupants.set(`family:${allocation.guest_family_id}`, {
+                type: "family",
+                id: allocation.guest_family_id,
+                personsAllocated: Number(room.persons_allocated || 1),
+              });
+            }
           }
           if (allocation.guest_id) {
             guestIds.add(allocation.guest_id);
-            uniqueOccupants.set(`guest:${allocation.guest_id}`, {
-              type: "guest",
-              id: allocation.guest_id,
-              personsAllocated: Number(room.persons_allocated || 1),
-            });
+            if (!uniqueOccupants.has(`guest:${allocation.guest_id}`)) {
+              uniqueOccupants.set(`guest:${allocation.guest_id}`, {
+                type: "guest",
+                id: allocation.guest_id,
+                personsAllocated: Number(room.persons_allocated || 1),
+              });
+            }
           }
 
           const current = occupantsByRoom.get(roomKey) ?? [];
@@ -610,6 +614,20 @@ export default function GuestsPage() {
                               </div>
                               <p className="mt-1 text-xs text-slate-500">{details.kind} · {occupant.personsAllocated} {occupant.personsAllocated === 1 ? "person" : "persons"}</p>
                               <p className="mt-1 text-xs text-slate-500">Owner: {details.owner} · Category: {details.category}</p>
+                              {occupant.type === "guest" && (
+                                <button
+                                  type="button"
+                                  onClick={(event) => {
+                                    event.preventDefault();
+                                    event.stopPropagation();
+                                    const guest = individualGuests.find((item) => item.id === occupant.id);
+                                    if (guest) setEditingIndividual(guest);
+                                  }}
+                                  className="mt-2 text-xs font-semibold text-blue-700 underline underline-offset-2"
+                                >
+                                  Edit guest
+                                </button>
+                              )}
                             </div>
                           );
                           return details.href ? <Link key={`${occupant.type}:${occupant.id}`} href={details.href} className="block">{content}</Link> : <div key={`${occupant.type}:${occupant.id}`}>{content}</div>;
